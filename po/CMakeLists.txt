@@ -25,13 +25,13 @@ if (XGETTEXT_FOUND)
       "${PROJECT_SOURCE_DIR}/ui/*.glade;${PROJECT_SOURCE_DIR}/ui/*.xml"
 
     DESKTOPFILES
-      "${PROJECT_SOURCE_DIR}/desktop/com.github.xournalpp.xournalpp.desktop.in"
+      "${PROJECT_SOURCE_DIR}/desktop/io.github.readme666.freenote.desktop.in"
 
     INIFILES
       "${PROJECT_SOURCE_DIR}/resources-templates/pagetemplates.ini.in;${PROJECT_SOURCE_DIR}/resources-templates/toolbar.ini.in"
 
     XMLFILES
-      "${PROJECT_SOURCE_DIR}/resources-templates/com.github.xournalpp.xournalpp.appdata.xml.in;${PROJECT_SOURCE_DIR}/resources-templates/com.github.xournalpp.xournalpp.xml.in"
+      "${PROJECT_SOURCE_DIR}/resources-templates/io.github.readme666.freenote.appdata.xml.in;${PROJECT_SOURCE_DIR}/resources-templates/io.github.readme666.freenote.xml.in"
 
     # The variable ITSDIR is used to find the .loc and .its files in po/its/
     # This is only necessary for Ubuntu 20.04. On more up-to-date distributions, the package shared-mime-info contains those .loc and .its files.
