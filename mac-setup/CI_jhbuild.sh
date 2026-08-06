@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # The GNU mirror (ftpmirror.gnu.org) is flaky from CI runners; retry the 
 # wget downloads used by the jhbuild bootstrap instead of aborting. 
-mkdir -p "$HOME/.local/bin" && printf '#!/usr/bin/env bash
-exec /usr/bin/wget --tries=10 --retry-connrefused --waitretry=3 "$@"
-' > "$HOME/.local/bin/wget" && chmod +x "$HOME/.local/bin/wget" && export PATH="$HOME/.local/bin:$PATH"
+mkdir -p "$HOME/.local/bin" && printf '%s\n' \
+  '#!/usr/bin/env bash' \
+  'for dir in ${PATH//:/ }; do' \
+  '  [ "$dir" = "$HOME/.local/bin" ] && continue' \
+  '  if [ -x "$dir/wget" ]; then exec "$dir/wget" --tries=10 --retry-connrefused --waitretry=3 "$@"; fi' \
+  'done' \
+  'echo "wget shim: no real wget found in PATH" >&2' \
+  'exit 1' > "$HOME/.local/bin/wget" && chmod +x "$HOME/.local/bin/wget" && export PATH="$HOME/.local/bin:$PATH"
 
 set -e
 set -o pipefail
