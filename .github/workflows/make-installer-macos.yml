@@ -25,6 +25,25 @@ on:
       link:
         description: URL of the produced installer
         value: ${{ jobs.release-macos.outputs.link }}
+  workflow_dispatch:
+    inputs:
+      runner:
+        type: string
+        required: true
+        default: 'macos-15-intel'
+      displayed_name:
+        type: string
+        required: true
+        default: 'MacOS x64'
+      build_type:
+        type: string
+        default: 'RelWithDebInfo'
+      extra_cmake_flags:
+        type: string
+        default: ''
+      artifact_version_suffix:
+        type: string
+        default: ''
 
 jobs:
   release-macos:
