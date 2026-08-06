@@ -76,7 +76,7 @@ jobs:
         with:
           gcc_version: ${{inputs.gcc_version}}
           extra_packages: ${{ inputs.extra_packages }}
-      - name: 'Build Xournal++'
+      - name: 'Build freenote'
         uses: ./.github/actions/build
         with:
           build_type: ${{ inputs.build_type }}
@@ -89,12 +89,12 @@ jobs:
         if: ${{ inputs.artifact_version_suffix != '' }}
         shell: bash
         run: |
-          for f in build/packages/xournalpp-*; do
+          for f in build/packages/freenote-*; do
             # If $artifact_version_suffix is `-foobar`, this transforms:
-            #      * `xournalpp-2.3.4-` into `xournalpp-2.3.4-foobar-`
-            #      * `xournalpp-2.3.4~dev-` into `xournalpp-2.3.4~dev-foobar-`
-            #      * `xournalpp-2.3.4+dev-` into `xournalpp-2.3.4+dev-foobar-`
-            correct_name="$(echo "$f" | sed "s/xournalpp-\(\(\:\?\(\:\?[0-9]\+\.\)\+[0-9]\+\)\(\:\?[+~][^-]\+\)\?\)-/xournalpp-\1${{ inputs.artifact_version_suffix }}-/")"
+            #      * `freenote-2.3.4-` into `freenote-2.3.4-foobar-`
+            #      * `freenote-2.3.4~dev-` into `freenote-2.3.4~dev-foobar-`
+            #      * `freenote-2.3.4+dev-` into `freenote-2.3.4+dev-foobar-`
+            correct_name="$(echo "$f" | sed "s/freenote-\(\(\:\?\(\:\?[0-9]\+\.\)\+[0-9]\+\)\(\:\?[+~][^-]\+\)\?\)-/freenote-\1${{ inputs.artifact_version_suffix }}-/")"
             echo "moving from $f to $correct_name"
             mv "$f" "$correct_name" || exit 1
           done
@@ -114,7 +114,7 @@ jobs:
           # Build AppImage
           export VERSION=$(cat VERSION | sed '1q;d')
           export ARCH=$(cat VERSION | sed '4q;d')
-          export OUTPUT="xournalpp-$VERSION${{ inputs.artifact_version_suffix }}-$ARCH.AppImage"
+          export OUTPUT="freenote-$VERSION${{ inputs.artifact_version_suffix }}-$ARCH.AppImage"
           ../linux-setup/build_appimage.sh
 
           mkdir appimage

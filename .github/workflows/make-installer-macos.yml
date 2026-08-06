@@ -41,7 +41,7 @@ jobs:
         uses: ./.github/actions/install_deps_mac
         with:
           install_path: $HOME
-      - name: 'Build Xournal++'
+      - name: 'Build freenote'
         uses: ./.github/actions/build
         with:
           build_type: ${{ inputs.build_type }}
@@ -55,12 +55,12 @@ jobs:
           which pkg-config
           pkg-config --version
           (cd build && cmake --build . --target install)
-          (cd mac-setup && ./build-app.sh $HOME/gtk)                    # populates a folder mac-setup/Xournal++.app
+          (cd mac-setup && ./build-app.sh $HOME/gtk)                    # populates a folder mac-setup/freenote.app
 
           export VERSION=$(cat build/VERSION | sed '1q;d')
-          export OUTPUT="xournalpp-$VERSION${{ inputs.artifact_version_suffix }}-macOS-${{runner.arch}}.dmg"
+          export OUTPUT="freenote-$VERSION${{ inputs.artifact_version_suffix }}-macOS-${{runner.arch}}.dmg"
 
-          (cd mac-setup && ./build-dmg.sh Xournal++.app $OUTPUT)  # makes an installer out of this folder
+          (cd mac-setup && ./build-dmg.sh freenote.app $OUTPUT)  # makes an installer out of this folder
 
           echo "artifact=$OUTPUT" >> $GITHUB_OUTPUT
       - name: 'Publish package'

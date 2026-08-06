@@ -1,8 +1,8 @@
-xournalpp (1.3.6+dev-1) UNRELEASED; urgency=medium
+freenote (1.0.0-1) UNRELEASED; urgency=medium
 
   * 
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Mon, 13 Jul 2026 13:43:51 +0200
+ -- chenzhuo <cz1084948263@hotmail.com>  Mon, 13 Jul 2026 13:43:51 +0200
 
 xournalpp (1.3.6-1) unstable; urgency=medium
 
@@ -17,7 +17,7 @@ xournalpp (1.3.6-1) unstable; urgency=medium
   * Fixed several issues with the "Add Pdf Page" dialog
   * Updated translations
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Mon, 13 Jul 2026 13:43:51 +0200
+ -- chenzhuo <cz1084948263@hotmail.com>  Mon, 13 Jul 2026 13:43:51 +0200
 
 xournalpp (1.3.5-1) unstable; urgency=medium
 
@@ -36,7 +36,7 @@ xournalpp (1.3.5-1) unstable; urgency=medium
   * Added Georgian translations
   * Updated translations
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Sun, 07 Jun 2026 10:24:15 +0200
+ -- chenzhuo <cz1084948263@hotmail.com>  Sun, 07 Jun 2026 10:24:15 +0200
 
 xournalpp (1.3.4-1) unstable; urgency=medium
 
@@ -47,7 +47,7 @@ xournalpp (1.3.4-1) unstable; urgency=medium
   * Make default Plugins compatible with Lua 5.5
   * Updated translations
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Sat, 28 Mar 2026 18:22:15 +0100
+ -- chenzhuo <cz1084948263@hotmail.com>  Sat, 28 Mar 2026 18:22:15 +0100
 
 xournalpp (1.3.3-1) unstable; urgency=medium
 
@@ -61,7 +61,7 @@ xournalpp (1.3.3-1) unstable; urgency=medium
   * Improve zoom/scroll responsivity
   * Updated translations
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Sat, 28 Feb 2026 09:16:06 +0100
+ -- chenzhuo <cz1084948263@hotmail.com>  Sat, 28 Feb 2026 09:16:06 +0100
 
 xournalpp (1.3.2-1) unstable; urgency=medium
 
@@ -78,7 +78,7 @@ xournalpp (1.3.2-1) unstable; urgency=medium
   * Fix crashes when using touchscreen in Setting->Input panel
   * Updated translations
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Tue, 03 Feb 2026 09:52:28 +0100
+ -- chenzhuo <cz1084948263@hotmail.com>  Tue, 03 Feb 2026 09:52:28 +0100
 
 xournalpp (1.3.1-1) unstable; urgency=medium
 
@@ -105,13 +105,13 @@ xournalpp (1.3.0-1) unstable; urgency=medium
   * Major changes in the plugin interface
   * Many smaller new features and bugfixes
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Thu, 11 Dec 2025 21:44:23 +0100
+ -- chenzhuo <cz1084948263@hotmail.com>  Thu, 11 Dec 2025 21:44:23 +0100
 
 xournalpp (1.2.10-1) unstable; urgency=medium
 
   * Updated translations
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Sun, 07 Dec 2025 11:26:46 +0100
+ -- chenzhuo <cz1084948263@hotmail.com>  Sun, 07 Dec 2025 11:26:46 +0100
 
 xournalpp (1.2.9-1) unstable; urgency=medium
 
@@ -120,7 +120,7 @@ xournalpp (1.2.9-1) unstable; urgency=medium
   * Fixed dangerous background overriding
   * Fixed image attach mode
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Wed, 03 Dec 2025 10:36:35 +0100
+ -- chenzhuo <cz1084948263@hotmail.com>  Wed, 03 Dec 2025 10:36:35 +0100
 
 xournalpp (1.2.8-1) unstable; urgency=medium
 
@@ -133,7 +133,7 @@ xournalpp (1.2.8-1) unstable; urgency=medium
   * Made using GtkSourceView and Plugins proper CMake options
   * Updated translations
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Mon, 01 Sep 2025 10:40:09 +0200
+ -- chenzhuo <cz1084948263@hotmail.com>  Mon, 01 Sep 2025 10:40:09 +0200
 
 xournalpp (1.2.7-1) unstable; urgency=medium
 
@@ -144,7 +144,7 @@ xournalpp (1.2.7-1) unstable; urgency=medium
   * Fixed wrong glyph spacing in texts using small fonts
   * Fixed rasterization of Tex elements on PDF/SVG export or printing
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Thu, 08 May 2025 15:20:59 +0200
+ -- chenzhuo <cz1084948263@hotmail.com>  Thu, 08 May 2025 15:20:59 +0200
 
 xournalpp (1.2.6-1) unstable; urgency=medium
 
@@ -162,7 +162,7 @@ xournalpp (1.2.5-1) unstable; urgency=medium
   * Fixed issues with Windows installer
   * Fixed missing translations on Windows
 
- -- Benjamin Hennion <17818041+bhennion@users.noreply.github.com>  Wed, 04 Dec 2024 16:17:08 +0100
+ -- chenzhuo <cz1084948263@hotmail.com>  Wed, 04 Dec 2024 16:17:08 +0100
 
 xournalpp (1.2.4-1) unstable; urgency=medium
 

@@ -6,7 +6,7 @@ on:
       - "master"
       - "release-*"
     paths-ignore:
-      - 'po/xournalpp.pot'
+      - 'po/freenote.pot'
       - 'po/*.po'
 
 env:
@@ -65,7 +65,7 @@ jobs:
     runs-on: ${{ matrix.run.runner }}
     container:
       image: ${{ matrix.run.container_image }}
-    name: 'Test Xournal++ on ${{ matrix.run.displayed_name }}'
+    name: 'Test freenote on ${{ matrix.run.displayed_name }}'
     steps:
       - uses: actions/checkout@v6
       - name: 'Install dependencies'
@@ -73,7 +73,7 @@ jobs:
         with:
           gcc_version: ${{ matrix.run.gcc_version }}
           extra_packages: ${{ matrix.run.extra_packages }}
-      - name: 'Build Xournal++'
+      - name: 'Build freenote'
         uses: ./.github/actions/build
         with:
           build_type: ${{env.BUILD_TYPE}}
@@ -137,7 +137,7 @@ jobs:
       matrix:
         run: ${{fromJSON(needs.prepare.outputs.windows_builds)}}
     runs-on: ${{ matrix.run.runner }}
-    name: 'Test Xournal++ on ${{ matrix.run.displayed_name }}'
+    name: 'Test freenote on ${{ matrix.run.displayed_name }}'
     steps:
       - uses: actions/checkout@v6
       - name: 'Install dependencies'
@@ -145,7 +145,7 @@ jobs:
         with:
           msystem: ${{ matrix.run.msystem }}
           msys_package_env: ${{ matrix.run.msys_package_env }}
-      - name: 'Build Xournal++'
+      - name: 'Build freenote'
         uses: ./.github/actions/build
         with:
           build_type: ${{env.BUILD_TYPE}}
@@ -167,14 +167,14 @@ jobs:
       matrix:
         run: ${{fromJSON(needs.prepare.outputs.macos_builds)}}
     runs-on: ${{ matrix.run.runner }}
-    name: 'Test Xournal++ on ${{ matrix.run.displayed_name }}'
+    name: 'Test freenote on ${{ matrix.run.displayed_name }}'
     steps:
       - uses: actions/checkout@v6
       - name: 'Install dependencies'
         uses: ./.github/actions/install_deps_mac
         with:
           install_path: $HOME
-      - name: 'Build Xournal++'
+      - name: 'Build freenote'
         uses: ./.github/actions/build
         with:
           build_type: ${{env.BUILD_TYPE}}

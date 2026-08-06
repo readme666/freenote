@@ -27,7 +27,7 @@ jobs:
       pull-requests: write  # Write: To post a comment acknowledging the run + Read: To get the head_sha
     steps:
       - name: 'Check user permission'
-        # To circumvent a security issue, only members/owners of the xournalpp team can run this CI.
+        # To circumvent a security issue, only members/owners of the freenote repository can run this CI.
         uses: actions/github-script@v8
         with:
           script: |

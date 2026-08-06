@@ -21,7 +21,7 @@ endif()
 ## Project related Variables
 ## Also update changelog in debian folder!
 project(freenote
-        VERSION 1.3.6
+        VERSION 1.0.0
         DESCRIPTION "freenote - Open source hand note-taking program"
         HOMEPAGE_URL "https://github.com/readme666/freenote"
         LANGUAGES CXX C)
@@ -29,9 +29,9 @@ project(freenote
 # And https://gitlab.kitware.com/cmake/cmake/-/issues/16716 is still open:
 set(VERSION_SUFFIX "+dev")
 set(PROJECT_VERSION "${PROJECT_VERSION}${VERSION_SUFFIX}")
-set(xournalpp_VERSION ${PROJECT_VERSION})
+set(freenote_VERSION ${PROJECT_VERSION})
 set(CMAKE_PROJECT_VERSION ${PROJECT_VERSION})
-set(PROJECT_CONTACT "core.xournalpp@github.com")
+set(PROJECT_CONTACT "cz1084948263@hotmail.com")
 
 ## CMAKE_Variables
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/find" "${PROJECT_SOURCE_DIR}/cmake/include")
@@ -188,14 +188,14 @@ endif ()
 
 option(ENABLE_PLUGINS "Compile with plugin support" ON)
 if (ENABLE_PLUGINS)
-    message(STATUS "Enable Xournal++ Plugins")
+    message(STATUS "Enable freenote Plugins")
     find_package(Lua REQUIRED)
     add_library(lua INTERFACE)
     target_link_libraries(lua INTERFACE ${LUA_LIBRARIES})
     target_include_directories(lua INTERFACE ${LUA_INCLUDE_DIR})
     add_library(Lua::lua ALIAS lua)
 else ()
-    message(STATUS "Disable Xournal++ Plugins")
+    message(STATUS "Disable freenote Plugins")
 endif ()
 
 option(ENABLE_GTK_SOURCEVIEW "Enable syntax highlighting in TeX editor" ON)
@@ -439,19 +439,19 @@ add_subdirectory (man)
 # Install resources
 install(DIRECTORY ui
         DESTINATION "share/freenote"
-        COMPONENT xournalpp
+        COMPONENT freenote
         )
 install(DIRECTORY plugins
         DESTINATION "share/freenote"
-        COMPONENT xournalpp
+        COMPONENT freenote
         )
 install(DIRECTORY resources
         DESTINATION "share/freenote"
-        COMPONENT xournalpp
+        COMPONENT freenote
         )
 install(DIRECTORY palettes
         DESTINATION "share/freenote"
-        COMPONENT xournalpp
+        COMPONENT freenote
         )
 
 # Install desktop shortcuts for Linux
@@ -517,8 +517,8 @@ set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION}~git${PACKAGE_TIMESTAMP}-${RELEASE_IDENTIFIER}-${DISTRO_CODENAME})
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/package_description")
 set(CPACK_PACKAGE_CONTACT "${PROJECT_CONTACT}")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "Xournal++")
-set(CPACK_PACKAGE_FILE_NAME "xournalpp-${PROJECT_VERSION}-${DISTRO_NAME}-${DISTRO_CODENAME}-${PACKAGE_ARCH}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "freenote")
+set(CPACK_PACKAGE_FILE_NAME "freenote-${PROJECT_VERSION}-${DISTRO_NAME}-${DISTRO_CODENAME}-${PACKAGE_ARCH}")
 set(CPACK_OUTPUT_FILE_PREFIX packages)
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 set(CPACK_STRIP_FILES ON) # Debian packages must be stripped from debug messages, so lintian doesn't complain

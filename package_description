@@ -1,12 +1,16 @@
-Xournal++ is a hand note-taking software written in C++ with the target of
-flexibility, functionality and speed. Stroke recognizer and other parts are
-based on Xournal Code, which you can find at sourceforge.
-It supports Linux (e.g. Ubuntu, Debian, Arch, SUSE), macOS and Windows.
+freenote is a hand note-taking software written in C++, a fork of Xournal++
+with real-time handwriting prediction powered by Google Ink Stroke Modeler.
+The writing experience is comparable to Microsoft OneNote.
+It supports Linux (e.g. Ubuntu, Debian, Arch), macOS and Windows.
 Supports pen input from devices such as Wacom Tablets.
 .
-Xournal++ features:
+freenote features:
 .
- - Supports pressure-sensitive styluses and digital pen tables (e.g. Wacom, Huion, XP Pen, etc. tablets)
+ - OneNote-grade handwriting with a transient wet-ink prediction preview
+ - 1 Euro adaptive input stabilization with independent pressure smoothing
+ - Infinite-canvas page mode with automatic right/down growth
+ - Multi-image insertion with grouped placement and undo
+ - Pressure-sensitive styluses and digital pen tablets (e.g. Wacom, Huion, XP Pen, etc.)
  - Paper backgrounds for note-taking, scratch paper, or whiteboarding
  - Annotate on top of PDFs
  - Select text from the background PDF, copy, highlight or underline it or strike it through
@@ -18,13 +22,12 @@ Xournal++ features:
  - Fill shape functionality
  - Shape resizing and rotation
  - Rotation and grid snapping for precise alignment of objects
- - Input stabilization for smoother writing/drawing
  - Text tool for adding text in different fonts, colors, and sizes
  - Enhanced support for image insertion
  - Eraser with multiple configurations
  - LaTeX support (requires a working LaTeX installation) with customizable template and a resizable editor with syntax highlighting
  - Sidebar containing page previews with advanced page sorting, PDF bookmarks and layers (can be individually hidden/edited)
- - Allows maping different tools/colors etc. to stylus/mouse buttons
+ - Allows mapping different tools/colors etc. to stylus/mouse buttons
  - Customizable toolbar with multiple configurations, e.g. to optimize toolbar for portrait/landscape
  - Custom color palette support using the .gpl format
  - Page template definitions

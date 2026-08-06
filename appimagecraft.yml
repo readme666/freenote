@@ -1,8 +1,8 @@
 version: 1
 
 project:
-  name: com.github.xournalpp.xournalpp
-  version_command: git describe --tags
+  name: freenote
+  version_command: git describe --tags --abbrev=0
 
 scripts:
   pre_build:
