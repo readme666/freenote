@@ -243,6 +243,9 @@ void SaveHandler::visitPage(XmlNode* root, ConstPageRef p, const Document* doc, 
     root->addChild(page);
     page->setAttrib(xoj::xml_attrs::WIDTH_STR, p->getWidth());
     page->setAttrib(xoj::xml_attrs::HEIGHT_STR, p->getHeight());
+    if (p->isInfiniteCanvas()) {
+        page->setAttrib(xoj::xml_attrs::INFINITE_STR, "true");
+    }
 
     auto* background = new XmlNode(TAG_NAMES[TagType::BACKGROUND]);
     page->addChild(background);

@@ -753,6 +753,31 @@ TEST(ControlLoadHandler, testLoadStoreCJK) {
     check_element(2, u8"テスト");
 }
 
+TEST(ControlLoadHandler, EndlessCanvasFlagSurvivesSaveAndLoad) {
+    const fs::path outPath =
+            fs::temp_directory_path() / "xournalpp-test-units_ControlLoadHandler_endlessCanvas.xopp";
+    fs::remove(outPath);
+
+    Document source(nullptr);
+    auto page = std::make_shared<XojPage>(1200.0, 1800.0);
+    page->setInfiniteCanvas(true);
+    source.addPage(page);
+
+    SaveHandler saver;
+    saver.prepareSave(&source, outPath);
+    ASSERT_NO_THROW(saver.saveTo(outPath));
+    ASSERT_TRUE(saver.getErrorMessage().empty());
+
+    auto loaded = LoadHandler{}.loadDocument(outPath);
+    ASSERT_NE(loaded, nullptr);
+    ASSERT_EQ(loaded->getPageCount(), size_t{1});
+    EXPECT_TRUE(loaded->getPage(0)->isInfiniteCanvas());
+    EXPECT_DOUBLE_EQ(loaded->getPage(0)->getWidth(), 1200.0);
+    EXPECT_DOUBLE_EQ(loaded->getPage(0)->getHeight(), 1800.0);
+
+    fs::remove(outPath);
+}
+
 TEST(ControlLoadHandler, testRelativePath) {
     auto doc = loadTestDocument(GET_TESTFILE(u8"load/relativePaths.xopp"));
     ASSERT_TRUE(doc) << "Unable to load test file \"load/relativePaths.xopp\"";

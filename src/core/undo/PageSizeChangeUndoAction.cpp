@@ -9,8 +9,12 @@
 #include "util/Util.h"        // for npos
 #include "util/i18n.h"        // for _
 
-PageSizeChangeUndoAction::PageSizeChangeUndoAction(const PageRef& page, double origW, double origH):
-        UndoAction("PageSizeChangeUndoAction"), otherWidth(origW), otherHeight(origH) {
+PageSizeChangeUndoAction::PageSizeChangeUndoAction(const PageRef& page, double origW, double origH,
+                                                   bool origInfiniteCanvas):
+        UndoAction("PageSizeChangeUndoAction"),
+        otherWidth(origW),
+        otherHeight(origH),
+        otherInfiniteCanvas(origInfiniteCanvas) {
     this->page = page;
 }
 
@@ -22,13 +26,16 @@ auto PageSizeChangeUndoAction::swapSizes(Control* control) -> bool {
     doc->lock();
     auto pageNr = doc->indexOf(this->page);
     if (pageNr == npos) {
+        doc->unlock();
         return false;
     }
 
     double w = this->page->getWidth();
     double h = this->page->getHeight();
+    bool infiniteCanvas = this->page->isInfiniteCanvas();
 
     this->page->setSize(std::exchange(this->otherWidth, w), std::exchange(this->otherHeight, h));
+    this->page->setInfiniteCanvas(std::exchange(this->otherInfiniteCanvas, infiniteCanvas));
     doc->unlock();
 
     control->firePageSizeChanged(pageNr);

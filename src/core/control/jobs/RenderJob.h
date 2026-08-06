@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <cstdint>  // for uint64_t
+
 #include <cairo.h>    // for cairo_surface_t
 #include <gtk/gtk.h>  // for GtkWidget
 
@@ -41,7 +43,8 @@ private:
 
     void repaintPageArea(double x1, double y1, double x2, double y2) const;
 
-    void rerenderRectangle(xoj::util::Rectangle<double> const& rect);
+    void rerenderRectangle(xoj::util::Rectangle<double> const& rect, double renderZoom, uint64_t generation,
+                           bool infiniteCanvas);
 
     void renderToBuffer(cairo_t* cr) const;
 

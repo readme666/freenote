@@ -97,10 +97,11 @@ void LoadHandler::finalizeDocument() {
     this->parsingComplete = true;
 }
 
-void LoadHandler::addPage(double width, double height) {
+void LoadHandler::addPage(double width, double height, bool infiniteCanvas) {
     xoj_assert(!this->page);
 
     this->page = std::make_shared<XojPage>(width, height, /*suppressLayerCreation*/ true);
+    this->page->setInfiniteCanvas(infiniteCanvas);
     this->pages.emplace_back(this->page);
 }
 

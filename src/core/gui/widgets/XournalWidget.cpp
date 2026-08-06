@@ -18,6 +18,7 @@
 #include "gui/XournalView.h"                // for XournalView
 #include "gui/inputdevices/InputContext.h"  // for InputContext
 #include "gui/scroll/ScrollHandling.h"      // for ScrollHandling
+#include "model/XojPage.h"                  // for XojPage
 #include "util/Color.h"                     // for cairo_set_source_rgbi
 #include "util/Rectangle.h"                 // for Rectangle
 
@@ -301,15 +302,22 @@ static auto gtk_xournal_draw(GtkWidget* widget, cairo_t* cr) -> gboolean {
     Range clip;
     cairo_clip_extents(cr, &clip.minX, &clip.minY, &clip.maxX, &clip.maxY);
 
-    // Draw background
+    const auto& views = xournal->view->getViewPages();
+
+    // An endless single canvas has no visible paper boundary.  Use its paper
+    // color for the viewport reserve as well, so newly revealed space appears
+    // continuous before the next growth chunk is committed.
     Settings* settings = xournal->view->getControl()->getSettings();
-    Util::cairo_set_source_rgbi(cr, settings->getBackgroundColor());
+    const Color backgroundColor =
+            views.size() == 1 && views.front()->getPage()->isInfiniteCanvas() ?
+                    views.front()->getPage()->getBackgroundColor() :
+                    settings->getBackgroundColor();
+    Util::cairo_set_source_rgbi(cr, backgroundColor);
     cairo_paint(cr);
 
     // Add a padding for the shadow of the pages
     clip.addPadding(10);
 
-    const auto& views = xournal->view->getViewPages();
     // Store the pages to release the layout mutex ASAP
     std::vector<std::pair<size_t, xoj::util::Point<int>>> pages;
     xournal->layout->forEachEntriesIntersectingRange(
@@ -320,7 +328,9 @@ static auto gtk_xournal_draw(GtkWidget* widget, cairo_t* cr) -> gboolean {
         int pw = pv->getDisplayWidth();
         int ph = pv->getDisplayHeight();
 
-        gtk_xournal_draw_shadow(xournal, cr, pos.x, pos.y, pw, ph, pv->isSelected());
+        if (!pv->getPage()->isInfiniteCanvas()) {
+            gtk_xournal_draw_shadow(xournal, cr, pos.x, pos.y, pw, ph, pv->isSelected());
+        }
 
         cairo_save(cr);
         cairo_translate(cr, pos.x, pos.y);

@@ -2804,9 +2804,12 @@ static int applib_setPageSize(lua_State* L) {
         doc->lock();
         double oldW = page->getWidth();
         double oldH = page->getHeight();
+        bool oldInfiniteCanvas = page->isInfiniteCanvas();
         Document::setPageSize(page, width, height);
+        page->setInfiniteCanvas(false);
         doc->unlock();
-        control->getUndoRedoHandler()->addUndoAction(std::make_unique<PageSizeChangeUndoAction>(page, oldW, oldH));
+        control->getUndoRedoHandler()->addUndoAction(
+                std::make_unique<PageSizeChangeUndoAction>(page, oldW, oldH, oldInfiniteCanvas));
     }
 
     size_t pageNo = doc->indexOf(page);

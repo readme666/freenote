@@ -82,8 +82,9 @@ void Image::setImage(std::string&& data) {
     size_t remaining = this->data.size();
     while (remaining > 0) {
         size_t readLen = std::min(remaining, buffer.size());
-        if (!gdk_pixbuf_loader_write(loader.get(), reinterpret_cast<const guchar*>(this->data.c_str()), readLen,
-                                     nullptr))
+        const size_t offset = this->data.size() - remaining;
+        if (!gdk_pixbuf_loader_write(loader.get(),
+                                     reinterpret_cast<const guchar*>(this->data.data() + offset), readLen, nullptr))
             break;
         remaining -= readLen;
 

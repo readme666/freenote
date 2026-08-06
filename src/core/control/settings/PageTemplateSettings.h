@@ -42,6 +42,9 @@ public:
     bool isCopyLastPageSize() const;
     void setCopyLastPageSize(bool copyLastPageSize);
 
+    bool isInfiniteCanvas() const;
+    void setInfiniteCanvas(bool infiniteCanvas);
+
     double getPageWidth() const;
     void setPageWidth(double pageWidth);
 
@@ -67,6 +70,9 @@ private:
      * Copy the last page size
      */
     bool copyLastPageSize;
+
+    /** New ordinary documents start as an automatically growing canvas. */
+    bool infiniteCanvas;
 
     double pageWidth;
     double pageHeight;

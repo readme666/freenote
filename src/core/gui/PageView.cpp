@@ -1,15 +1,17 @@
 #include "PageView.h"
 
-#include <algorithm>  // for max, find_if
-#include <cinttypes>  // for int64_t
-#include <cstdint>    // for int64_t
-#include <cstdlib>    // for size_t
-#include <iomanip>    // for operator<<, quoted
-#include <memory>     // for unique_ptr, make_...
-#include <optional>   // for optional
-#include <sstream>    // for operator<<, basic...
-#include <tuple>      // for tuple, tie
-#include <utility>    // for move
+#include <algorithm>     // for max, find_if
+#include <cinttypes>     // for int64_t
+#include <cmath>         // for ceil, isfinite
+#include <cstdint>       // for int64_t
+#include <cstdlib>       // for size_t
+#include <iomanip>       // for operator<<, quoted
+#include <memory>        // for unique_ptr, make_...
+#include <optional>      // for optional
+#include <shared_mutex>  // for shared_lock
+#include <sstream>       // for operator<<, basic...
+#include <tuple>         // for tuple, tie
+#include <utility>       // for move
 
 #include <gdk/gdk.h>         // for GdkRectangle, Gdk...
 #include <gdk/gdkkeysyms.h>  // for GDK_KEY_Escape
@@ -81,6 +83,7 @@
 #include "util/safe_casts.h"                        // for ceil_cast, floor_cast, round_cast
 #include "util/serdesstream.h"                      // for serdes_stream
 #include "view/DebugShowRepaintBounds.h"            // for IF_DEBUG_REPAINT
+#include "view/DocumentView.h"                      // for DocumentView
 #include "view/overlays/OverlayView.h"              // for OverlayView, Tool...
 #include "view/overlays/PdfElementSelectionView.h"  // for PdfElementSelecti...
 #include "view/overlays/SearchResultView.h"         // for SearchResultView
@@ -97,6 +100,22 @@ class OverlayBase;
 
 using std::string;
 using xoj::util::Rectangle;
+
+namespace {
+constexpr double INFINITE_CACHE_PREFETCH_VIEWPORTS = 0.5;
+constexpr double INFINITE_EXPANSION_THRESHOLD_VIEWPORTS = 0.1;
+constexpr double INFINITE_EXPANSION_CHUNK_VIEWPORTS = 0.5;
+
+auto rangeContains(const Range& outer, const Range& inner) -> bool {
+    if (outer.empty() || inner.empty()) {
+        return false;
+    }
+
+    constexpr double EPSILON = 1e-6;
+    return inner.minX >= outer.minX - EPSILON && inner.minY >= outer.minY - EPSILON &&
+           inner.maxX <= outer.maxX + EPSILON && inner.maxY <= outer.maxY + EPSILON;
+}
+}  // namespace
 
 XojPageView::XojPageView(XournalView* xournal, const PageRef& page):
         page(page),
@@ -245,6 +264,8 @@ auto XojPageView::onButtonPressEvent(const PositionInputData& pos) -> bool {
     if (x < 0 || y < 0) {
         return false;
     }
+
+    expandInfiniteCanvasForInput(pos);
 
     double zoom = xournal->getZoom();
     x /= zoom;
@@ -545,6 +566,10 @@ auto XojPageView::onMotionNotifyEvent(const PositionInputData& pos) -> bool {
     if (currentSequenceDeviceId && currentSequenceDeviceId != pos.deviceId) {
         // This motion event is not from the device which started the sequence: reject it
         return false;
+    }
+
+    if (currentSequenceDeviceId) {
+        expandInfiniteCanvasForInput(pos);
     }
 
     double zoom = xournal->getZoom();
@@ -851,9 +876,206 @@ auto XojPageView::onKeyReleaseEvent(const KeyEvent& event) -> bool {
     return false;
 }
 
+auto XojPageView::getInfiniteCanvasVisibleRange() const -> Range {
+    const Range pageBounds(0.0, 0.0, page->getWidth(), page->getHeight());
+    if (pageBounds.empty() || pageBounds.getWidth() <= 0.0 || pageBounds.getHeight() <= 0.0) {
+        return Range();
+    }
+
+    if (Range visiblePart = getVisiblePart(); !visiblePart.empty()) {
+        return visiblePart.intersect(pageBounds);
+    }
+
+    // Page visibility is updated independently from drawing.  Derive the
+    // range from the GTK adjustments as a fallback so every full-render
+    // request still captures UI state before entering the worker thread.
+    const double zoom = getZoom();
+    if (zoom <= 0.0) {
+        return Range();
+    }
+
+    const auto visible = xournal->getLayout()->getVisibleRect();
+    const auto pagePosition = getPixelPosition();
+    return Range((visible.x - pagePosition.x) / zoom, (visible.y - pagePosition.y) / zoom,
+                 (visible.x + visible.width - pagePosition.x) / zoom,
+                 (visible.y + visible.height - pagePosition.y) / zoom)
+            .intersect(pageBounds);
+}
+
+auto XojPageView::getInfiniteCanvasCacheRange(const Range& visibleRange) const -> Range {
+    const Range pageBounds(0.0, 0.0, page->getWidth(), page->getHeight());
+    if (pageBounds.empty() || pageBounds.getWidth() <= 0.0 || pageBounds.getHeight() <= 0.0) {
+        return Range();
+    }
+
+    Range visible = visibleRange.intersect(pageBounds);
+    const double zoom = getZoom();
+    const auto viewport = xournal->getLayout()->getVisibleRect();
+    const double viewportWidth = zoom > 0.0 ? viewport.width / zoom : 0.0;
+    const double viewportHeight = zoom > 0.0 ? viewport.height / zoom : 0.0;
+
+    if (visible.empty()) {
+        // This is only an initialization fallback for a temporarily invisible
+        // page.  It deliberately stays viewport-sized instead of allocating
+        // the page's (potentially very large) stored extent.
+        const double fallbackWidth = std::min(page->getWidth(), std::max(1.0, viewportWidth));
+        const double fallbackHeight = std::min(page->getHeight(), std::max(1.0, viewportHeight));
+        visible = Range(0.0, 0.0, fallbackWidth, fallbackHeight);
+    }
+
+    const double prefetchX = INFINITE_CACHE_PREFETCH_VIEWPORTS * std::max(viewportWidth, visible.getWidth());
+    const double prefetchY = INFINITE_CACHE_PREFETCH_VIEWPORTS * std::max(viewportHeight, visible.getHeight());
+    return Range(visible.minX - prefetchX, visible.minY - prefetchY, visible.maxX + prefetchX, visible.maxY + prefetchY)
+            .intersect(pageBounds);
+}
+
+void XojPageView::requestInfiniteCanvasCache(const Range& visibleRange) {
+    if (!page->isInfiniteCanvas() || visibleRange.empty()) {
+        return;
+    }
+
+    const double zoom = getZoom();
+    const Range cacheRange = getInfiniteCanvasCacheRange(visibleRange);
+    if (zoom <= 0.0 || cacheRange.empty() || cacheRange.getWidth() <= 0.0 || cacheRange.getHeight() <= 0.0) {
+        return;
+    }
+
+    {
+        std::lock_guard lock(this->repaintRectMutex);
+        const uint64_t requestedGeneration = renderGeneration.load();
+        const bool requestPending = renderedGeneration.load() != requestedGeneration;
+        const bool pendingRequestCoversVisible =
+                requestPending && fullRenderZoom == zoom && rangeContains(fullRenderRange, visibleRange);
+        if (pendingRequestCoversVisible) {
+            return;
+        }
+
+        this->rerenderComplete = true;
+        this->fullRenderRange = cacheRange;
+        this->fullRenderZoom = zoom;
+        this->fullRenderInfiniteCanvas = true;
+        renderGeneration.fetch_add(1);
+    }
+
+    xournal->getControl()->getScheduler()->addRerenderPage(this);
+}
+
+void XojPageView::expandInfiniteCanvasForInput(const PositionInputData& pos) {
+    if (!page->isInfiniteCanvas() || pos.x < 0.0 || pos.y < 0.0 || !std::isfinite(pos.x) || !std::isfinite(pos.y)) {
+        return;
+    }
+
+    const double zoom = getZoom();
+    const auto viewport = xournal->getLayout()->getVisibleRect();
+    if (zoom <= 0.0 || viewport.width <= 0.0 || viewport.height <= 0.0) {
+        return;
+    }
+
+    const double viewportWidth = viewport.width / zoom;
+    const double viewportHeight = viewport.height / zoom;
+    const double widthChunk = std::max(1.0, viewportWidth * INFINITE_EXPANSION_CHUNK_VIEWPORTS);
+    const double heightChunk = std::max(1.0, viewportHeight * INFINITE_EXPANSION_CHUNK_VIEWPORTS);
+    const double x = pos.x / zoom;
+    const double y = pos.y / zoom;
+
+    auto* document = xournal->getDocument();
+    document->lock();
+
+    const double oldWidth = page->getWidth();
+    const double oldHeight = page->getHeight();
+    double newWidth = oldWidth;
+    double newHeight = oldHeight;
+
+    if (x >= oldWidth - viewportWidth * INFINITE_EXPANSION_THRESHOLD_VIEWPORTS) {
+        const double requestedWidth = std::max(oldWidth + widthChunk, x + widthChunk);
+        newWidth = std::ceil(requestedWidth / widthChunk) * widthChunk;
+    }
+    if (y >= oldHeight - viewportHeight * INFINITE_EXPANSION_THRESHOLD_VIEWPORTS) {
+        const double requestedHeight = std::max(oldHeight + heightChunk, y + heightChunk);
+        newHeight = std::ceil(requestedHeight / heightChunk) * heightChunk;
+    }
+
+    const size_t pageNo = document->indexOf(page);
+    if (pageNo != npos && (newWidth > oldWidth || newHeight > oldHeight)) {
+        Document::setPageSize(page, newWidth, newHeight);
+    }
+    document->unlock();
+
+    if (pageNo != npos && (newWidth > oldWidth || newHeight > oldHeight)) {
+        xournal->getControl()->firePageSizeChanged(pageNo);
+    }
+}
+
+void XojPageView::expandInfiniteCanvasForRange(const Range& range) {
+    if (!page->isInfiniteCanvas() || range.empty() || !std::isfinite(range.maxX) || !std::isfinite(range.maxY)) {
+        return;
+    }
+
+    const double zoom = getZoom();
+    const auto viewport = xournal->getLayout()->getVisibleRect();
+    if (zoom <= 0.0 || viewport.width <= 0.0 || viewport.height <= 0.0) {
+        return;
+    }
+
+    const double viewportWidth = viewport.width / zoom;
+    const double viewportHeight = viewport.height / zoom;
+    const double widthChunk = std::max(1.0, viewportWidth * INFINITE_EXPANSION_CHUNK_VIEWPORTS);
+    const double heightChunk = std::max(1.0, viewportHeight * INFINITE_EXPANSION_CHUNK_VIEWPORTS);
+    const double horizontalMargin = viewportWidth * INFINITE_EXPANSION_THRESHOLD_VIEWPORTS;
+    const double verticalMargin = viewportHeight * INFINITE_EXPANSION_THRESHOLD_VIEWPORTS;
+
+    auto* document = xournal->getDocument();
+    document->lock();
+
+    const double oldWidth = page->getWidth();
+    const double oldHeight = page->getHeight();
+    double newWidth = oldWidth;
+    double newHeight = oldHeight;
+    if (range.maxX >= oldWidth - horizontalMargin) {
+        newWidth = std::ceil(std::max(oldWidth + widthChunk, range.maxX + horizontalMargin) / widthChunk) * widthChunk;
+    }
+    if (range.maxY >= oldHeight - verticalMargin) {
+        newHeight =
+                std::ceil(std::max(oldHeight + heightChunk, range.maxY + verticalMargin) / heightChunk) * heightChunk;
+    }
+
+    const size_t pageNo = document->indexOf(page);
+    if (pageNo != npos && (newWidth > oldWidth || newHeight > oldHeight)) {
+        Document::setPageSize(page, newWidth, newHeight);
+    }
+    document->unlock();
+
+    if (pageNo != npos && (newWidth > oldWidth || newHeight > oldHeight)) {
+        xournal->getControl()->firePageSizeChanged(pageNo);
+    }
+}
+
+void XojPageView::drawPageDirect(cairo_t* cr) const {
+    DocumentView localView;
+    localView.setMarkAudioStroke(xournal->getControl()->getToolHandler()->getToolType() == TOOL_PLAY_OBJECT);
+    localView.setPdfCache(xournal->getCache());
+
+    std::shared_lock<Document> lock(*xournal->getDocument());
+    localView.drawPage(page, cr, false);
+}
+
 void XojPageView::rerenderPage(bool sizeChanged) {
-    this->rerenderComplete = true;
-    this->sizeChanged = sizeChanged;
+    const Range fullRange = page->isInfiniteCanvas() ? getInfiniteCanvasCacheRange(getInfiniteCanvasVisibleRange()) :
+                                                       Range(0.0, 0.0, page->getWidth(), page->getHeight());
+    if (fullRange.empty() || fullRange.getWidth() <= 0.0 || fullRange.getHeight() <= 0.0) {
+        return;
+    }
+
+    {
+        std::lock_guard lock(this->repaintRectMutex);
+        this->rerenderComplete = true;
+        this->sizeChanged = this->sizeChanged || sizeChanged;
+        this->fullRenderRange = fullRange;
+        this->fullRenderZoom = getZoom();
+        this->fullRenderInfiniteCanvas = page->isInfiniteCanvas();
+        renderGeneration.fetch_add(1);
+    }
+
     this->xournal->getControl()->getScheduler()->addRerenderPage(this);
 }
 
@@ -871,10 +1093,22 @@ void XojPageView::drawAndDeleteToolView(xoj::view::ToolView* v, const Range& rg)
     if (v->isViewOf(this->inputHandler.get()) || v->isViewOf(this->verticalSpace.get()) ||
         v->isViewOf(this->textEditor.get())) {
         // Draw the inputHandler's view onto the page buffer.
-        std::lock_guard lock(this->drawingMutex);
-        if (auto cr = buffer.get(); cr) {
-            v->drawWithoutDrawingAids(cr);
-        } else {
+        bool cacheMiss = false;
+        {
+            std::lock_guard lock(this->drawingMutex);
+            const bool infiniteCacheCurrent =
+                    !page->isInfiniteCanvas() || renderedGeneration.load() == renderGeneration.load();
+            const bool rangeCovered = !page->isInfiniteCanvas() || rg.empty() || buffer.contains(rg);
+            if (auto cr = buffer.get(); cr && infiniteCacheCurrent && rangeCovered) {
+                v->drawWithoutDrawingAids(cr);
+            } else {
+                cacheMiss = true;
+            }
+        }
+        if (cacheMiss) {
+            // The tool's model update may have raced with an in-flight full
+            // render.  Force a new generation so deleting the overlay cannot
+            // leave that committed edit absent from the installed cache.
             rerenderPage();
         }
     }
@@ -913,13 +1147,12 @@ auto XojPageView::toWidgetCoordinates(const xoj::util::Rectangle<double>& r) con
 }
 
 void XojPageView::rerenderRect(double x, double y, double width, double height) {
+    auto rect = Rectangle<double>{x, y, width, height};
+
+    std::unique_lock lock(this->repaintRectMutex);
     if (this->rerenderComplete) {
         return;
     }
-
-    auto rect = Rectangle<double>{x, y, width, height};
-
-    this->repaintRectMutex.lock();
 
     for (auto&& r: this->rerenderRects) {
         // its faster to redraw only one rect than repaint twice the same area
@@ -927,13 +1160,12 @@ void XojPageView::rerenderRect(double x, double y, double width, double height) 
         // intersects any of them, replace it by the union with the new one
         if (r.intersects(rect)) {
             r.unite(rect);
-            this->repaintRectMutex.unlock();
             return;
         }
     }
 
     this->rerenderRects.push_back(rect);
-    this->repaintRectMutex.unlock();
+    lock.unlock();
 
     this->xournal->getControl()->getScheduler()->addRerenderPage(this);
 }
@@ -1093,21 +1325,45 @@ auto XojPageView::paintPage(cairo_t* cr, GdkRectangle* rect) -> bool {
     xoj::util::CairoSaveGuard saveGuard(cr);
     cairo_scale(cr, zoom, zoom);
 
-    {
-        std::lock_guard lock(this->drawingMutex);  // Lock the mutex first
-        xoj::util::CairoSaveGuard saveGuard(cr);   // see comment at the end of the scope
-        if (!this->hasBuffer()) {
-            drawLoadingPage(cr);
-            return true;
+    if (!page->isInfiniteCanvas()) {
+        {
+            std::lock_guard lock(this->drawingMutex);  // Lock the mutex first
+            xoj::util::CairoSaveGuard saveGuard(cr);   // see comment at the end of the scope
+            if (!this->hasBuffer()) {
+                drawLoadingPage(cr);
+                return true;
+            }
+
+            if (this->buffer.getZoom() != zoom) {
+                rerenderPage();
+                cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_FAST);
+            }
+            this->buffer.paintTo(cr);
+        }  // Restore the state of cr and then release the mutex
+           // restoring the state of cr ensures this->buffer.surface is no longer referenced as the source in cr.
+    } else {
+        Range visibleRange;
+        cairo_clip_extents(cr, &visibleRange.minX, &visibleRange.minY, &visibleRange.maxX, &visibleRange.maxY);
+        visibleRange = visibleRange.intersect(Range(0.0, 0.0, page->getWidth(), page->getHeight()));
+
+        bool cacheUsable = false;
+        {
+            std::lock_guard lock(this->drawingMutex);
+            cacheUsable = buffer.isInitialized() && buffer.getZoom() == zoom && !visibleRange.empty() &&
+                          buffer.contains(visibleRange) && renderedGeneration.load() == renderGeneration.load();
+            if (cacheUsable) {
+                buffer.paintTo(cr);
+            }
         }
 
-        if (this->buffer.getZoom() != zoom) {
-            rerenderPage();
-            cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_FAST);
+        if (!cacheUsable && !visibleRange.empty()) {
+            // Rendering through the existing widget clip avoids a blank frame
+            // when scrolling leaves the cached extent.  LayerView and the
+            // background painters already cull to this clip.
+            drawPageDirect(cr);
+            requestInfiniteCanvasCache(visibleRange);
         }
-        this->buffer.paintTo(cr);
-    }  // Restore the state of cr and then release the mutex
-       // restoring the state of cr ensures this->buffer.surface is not longer referenced as the source in cr.
+    }
 
     /**
      * All the overlay painters below follow the assumption:
@@ -1156,13 +1412,21 @@ auto XojPageView::getDisplayHeightDouble() const -> double {
     return this->page->getHeight() * this->xournal->getZoom();
 }
 
-void XojPageView::rectChanged(Rectangle<double>& rect) { rerenderRect(rect.x, rect.y, rect.width, rect.height); }
+void XojPageView::rectChanged(Rectangle<double>& rect) {
+    expandInfiniteCanvasForRange(Range(rect));
+    rerenderRect(rect.x, rect.y, rect.width, rect.height);
+}
 
-void XojPageView::rangeChanged(Range& range) { rerenderRange(range); }
+void XojPageView::rangeChanged(Range& range) {
+    expandInfiniteCanvasForRange(range);
+    rerenderRange(range);
+}
 
 void XojPageView::pageChanged() { rerenderPage(); }
 
 void XojPageView::elementChanged(const Element* elem) {
+    expandInfiniteCanvasForRange(Range(elem->boundingRect()));
+
     /*
      * The input handlers issue an elementChanged event when creating an element.
      * There is however no need to redraw the element in this case: the element was already painted to the buffer via a

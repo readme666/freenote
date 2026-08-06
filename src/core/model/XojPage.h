@@ -55,6 +55,13 @@ public:
     double getWidth() const;
     double getHeight() const;
 
+    /**
+     * Whether this page is an automatically growing, top-left anchored canvas.
+     * Width and height remain finite and describe the current stored extent.
+     */
+    bool isInfiniteCanvas() const;
+    void setInfiniteCanvas(bool infinite);
+
     size_t getPdfPageNr() const;
 
     bool isAnnotated() const;
@@ -96,6 +103,8 @@ private:
      */
     double width = 0;
     double height = 0;
+
+    bool infiniteCanvas = false;
 
     /**
      * The layer list

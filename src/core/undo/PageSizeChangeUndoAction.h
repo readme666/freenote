@@ -22,7 +22,7 @@ class Control;
 
 class PageSizeChangeUndoAction: public UndoAction {
 public:
-    PageSizeChangeUndoAction(const PageRef& page, double origW, double origH);
+    PageSizeChangeUndoAction(const PageRef& page, double origW, double origH, bool origInfiniteCanvas = false);
     ~PageSizeChangeUndoAction() override;
 
 public:
@@ -35,4 +35,5 @@ private:
     bool swapSizes(Control* ctrl);
     double otherWidth;
     double otherHeight;
+    bool otherInfiniteCanvas;
 };

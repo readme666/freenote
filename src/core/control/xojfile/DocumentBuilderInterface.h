@@ -36,7 +36,7 @@ public:
 
     virtual void addDocument(std::u8string creator, int fileVersion) = 0;
     virtual void finalizeDocument() = 0;
-    virtual void addPage(double width, double height) = 0;
+    virtual void addPage(double width, double height, bool infiniteCanvas) = 0;
     virtual void finalizePage() = 0;
     virtual void addAudioAttachment(const fs::path& filename) = 0;
     virtual void setBgName(const std::string& name) = 0;

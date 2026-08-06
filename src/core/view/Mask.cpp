@@ -23,12 +23,18 @@ std::string getSurfaceTypeName(cairo_surface_t*);
 #endif
 
 Mask::Mask(cairo_surface_t* target, const Range& extent, double zoom, cairo_content_t contentType):
-        xOffset(floor_cast<int>(extent.minX * zoom)), yOffset(floor_cast<int>(extent.minY * zoom)), zoom(zoom) {
+        xOffset(floor_cast<int>(extent.minX * zoom)),
+        yOffset(floor_cast<int>(extent.minY * zoom)),
+        zoom(zoom),
+        extent(extent) {
     constructorImpl(target, extent, zoom, contentType);
 }
 
 Mask::Mask(int DPIScaling, const Range& extent, double zoom, cairo_content_t contentType):
-        xOffset(floor_cast<int>(extent.minX * zoom)), yOffset(floor_cast<int>(extent.minY * zoom)), zoom(zoom) {
+        xOffset(floor_cast<int>(extent.minX * zoom)),
+        yOffset(floor_cast<int>(extent.minY * zoom)),
+        zoom(zoom),
+        extent(extent) {
     constructorImpl(DPIScaling, extent, zoom, contentType);
 }
 
@@ -102,6 +108,19 @@ auto Mask::get() -> cairo_t* { return cr.get(); }
 
 bool Mask::isInitialized() const { return cr; }
 
+auto Mask::contains(const Range& range) const -> bool {
+    if (!isInitialized() || extent.empty() || range.empty()) {
+        return false;
+    }
+
+    // Cairo's integer surface bounds are rounded outwards.  Comparing the
+    // logical ranges with a tiny tolerance avoids cache misses due only to
+    // floating-point roundoff at a clip edge.
+    constexpr double EPSILON = 1e-6;
+    return range.minX >= extent.minX - EPSILON && range.minY >= extent.minY - EPSILON &&
+           range.maxX <= extent.maxX + EPSILON && range.maxY <= extent.maxY + EPSILON;
+}
+
 void Mask::blitTo(cairo_t* targetCr) const {
     xoj_assert(isInitialized());
     xoj::util::CairoSaveGuard guard(targetCr);
@@ -145,7 +164,10 @@ void Mask::wipeRange(const Range& rg) {
     wipe();
 }
 
-void Mask::reset() { cr.reset(); }
+void Mask::reset() {
+    cr.reset();
+    extent = Range();
+}
 
 #ifdef DEBUG_MASKS
 namespace {

@@ -209,8 +209,11 @@ void XmlParser::parseMrWriterTag(const XmlParserHelper::AttributeMap& attributeM
 void XmlParser::parsePageTag(const XmlParserHelper::AttributeMap& attributeMap) {
     const auto width = XmlParserHelper::getAttribMandatory<double>(xoj::xml_attrs::WIDTH_STR, attributeMap);
     const auto height = XmlParserHelper::getAttribMandatory<double>(xoj::xml_attrs::HEIGHT_STR, attributeMap);
+    const auto infiniteAttribute =
+            XmlParserHelper::getAttrib<std::string_view>(xoj::xml_attrs::INFINITE_STR, attributeMap);
+    const bool infiniteCanvas = infiniteAttribute && *infiniteAttribute == "true";
 
-    this->builder.addPage(width, height);
+    this->builder.addPage(width, height, infiniteCanvas);
 }
 
 void XmlParser::parseAudioTag(const XmlParserHelper::AttributeMap& attributeMap) {

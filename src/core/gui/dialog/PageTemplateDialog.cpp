@@ -53,6 +53,7 @@ PageTemplateDialog::PageTemplateDialog(GladeSearchpath* gladeSearchPath, Setting
     backgroundColorChooser = GTK_COLOR_CHOOSER(builder.get("cbBackgroundButton"));
     copyLastPageButton = GTK_TOGGLE_BUTTON(builder.get("cbCopyLastPage"));
     copyLastPageSizeButton = GTK_TOGGLE_BUTTON(builder.get("cbCopyLastPageSize"));
+    infiniteCanvasButton = GTK_TOGGLE_BUTTON(builder.get("cbInfiniteCanvas"));
 
 
     g_signal_connect_swapped(builder.get("btChangePaperSize"), "clicked",
@@ -92,6 +93,7 @@ void PageTemplateDialog::updateDataFromModel() {
 
     gtk_toggle_button_set_active(copyLastPageButton, model.isCopyLastPageSettings());
     gtk_toggle_button_set_active(copyLastPageSizeButton, model.isCopyLastPageSize());
+    gtk_toggle_button_set_active(infiniteCanvasButton, model.isInfiniteCanvas());
 }
 
 void PageTemplateDialog::changeCurrentPageBackground(const PageTypeInfo* info) {
@@ -103,6 +105,7 @@ void PageTemplateDialog::changeCurrentPageBackground(const PageTypeInfo* info) {
 void PageTemplateDialog::saveToModel() {
     model.setCopyLastPageSettings(gtk_toggle_button_get_active(copyLastPageButton));
     model.setCopyLastPageSize(gtk_toggle_button_get_active(copyLastPageSizeButton));
+    model.setInfiniteCanvas(gtk_toggle_button_get_active(infiniteCanvasButton));
 
     GdkRGBA color;
     gtk_color_chooser_get_rgba(backgroundColorChooser, &color);

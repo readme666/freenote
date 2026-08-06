@@ -14,6 +14,7 @@
 #include "gui/PageView.h"               // for XojPageView
 #include "gui/XournalView.h"            // for XournalView
 #include "gui/scroll/ScrollHandling.h"  // for ScrollHandling
+#include "model/XojPage.h"              // for XojPage
 #include "util/Assert.h"                // for xoj_assert
 #include "util/Util.h"                  // for execInUiThread
 #include "util/gdk4_helper.h"           // for gdk_event_get_modifier_state
@@ -275,10 +276,17 @@ auto ZoomControl::updateZoomFitValue(size_t pageNo) -> bool {
         return false;
     }
 
-    Rectangle widget_rect = getVisibleRect();
-    double zoom_fit_width = widget_rect.width / (page->getWidth() + 20.0);
-
-    this->zoomFitValue = std::clamp(zoom_fit_width, this->zoomMin, this->zoomMax);
+    if (page->getPage()->isInfiniteCanvas()) {
+        // An endless canvas has no meaningful total width to fit.  Its finite
+        // backing extent grows while the user writes or scrolls; deriving the
+        // zoom from that extent would make the view shrink after every growth
+        // step (and could reinterpret the input event which triggered it).
+        this->zoomFitValue = std::clamp(this->zoom100Value, this->zoomMin, this->zoomMax);
+    } else {
+        Rectangle widget_rect = getVisibleRect();
+        double zoom_fit_width = widget_rect.width / (page->getWidth() + 20.0);
+        this->zoomFitValue = std::clamp(zoom_fit_width, this->zoomMin, this->zoomMax);
+    }
     fireZoomRangeValueChanged();
     if (this->isZoomFitMode() && !this->zoomPresentationMode) {
         this->zoomFit();
@@ -297,12 +305,18 @@ auto ZoomControl::updateZoomPresentationValue(size_t pageNo) -> bool {
         return false;
     }
 
-    Rectangle widget_rect = getVisibleRect();
-    double zoom_fit_width = widget_rect.width / (page->getWidth() + 14.0);
-    double zoom_fit_height = widget_rect.height / (page->getHeight() + 14.0);
-    double zoom_presentation = zoom_fit_width < zoom_fit_height ? zoom_fit_width : zoom_fit_height;
-
-    this->zoomPresentationValue = std::clamp(zoom_presentation, this->zoomMin, this->zoomMax);
+    if (page->getPage()->isInfiniteCanvas()) {
+        // Presentation fit is likewise undefined for an automatically growing
+        // extent.  Keep a stable 100% view rather than zooming farther out as
+        // the backing page expands.
+        this->zoomPresentationValue = std::clamp(this->zoom100Value, this->zoomMin, this->zoomMax);
+    } else {
+        Rectangle widget_rect = getVisibleRect();
+        double zoom_fit_width = widget_rect.width / (page->getWidth() + 14.0);
+        double zoom_fit_height = widget_rect.height / (page->getHeight() + 14.0);
+        double zoom_presentation = zoom_fit_width < zoom_fit_height ? zoom_fit_width : zoom_fit_height;
+        this->zoomPresentationValue = std::clamp(zoom_presentation, this->zoomMin, this->zoomMax);
+    }
     if (this->zoomPresentationMode) {
         this->zoomPresentation();
     }

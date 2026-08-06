@@ -11,7 +11,9 @@
 
 #pragma once
 
+#include <atomic>   // for atomic_uint64_t
 #include <cstddef>  // for size_t
+#include <cstdint>  // for uint64_t
 #include <memory>   // for unique_ptr, shared_ptr
 #include <mutex>    // for mutex
 #include <string>   // for string
@@ -193,6 +195,22 @@ private:
 
     void startLink();
 
+    /** Capture and pad the currently visible part of an infinite canvas. */
+    Range getInfiniteCanvasVisibleRange() const;
+    Range getInfiniteCanvasCacheRange(const Range& visibleRange) const;
+
+    /** Queue a visible-region cache refresh without duplicating an in-flight request. */
+    void requestInfiniteCanvasCache(const Range& visibleRange);
+
+    /** Grow an infinite canvas right/down before an input point reaches its finite backing extent. */
+    void expandInfiniteCanvasForInput(const PositionInputData& pos);
+
+    /** Grow an infinite canvas to keep committed or moved content inside its stored extent. */
+    void expandInfiniteCanvasForRange(const Range& range);
+
+    /** Render through the current Cairo clip while the visible-region cache catches up. */
+    void drawPageDirect(cairo_t* cr) const;
+
     void drawLoadingPage(cairo_t* cr);
 
     /**
@@ -283,6 +301,17 @@ private:
     std::vector<xoj::util::Rectangle<double>> rerenderRects;
     bool rerenderComplete = false;
     bool sizeChanged = false;
+    Range fullRenderRange;
+    double fullRenderZoom = 1.0;
+    bool fullRenderInfiniteCanvas = false;
+
+    /**
+     * Full-cache generation requested by the UI and the generation currently
+     * installed in `buffer`.  They keep stale zoom/extent jobs from becoming
+     * visible after a newer request has been issued.
+     */
+    std::atomic_uint64_t renderGeneration{0};
+    std::atomic_uint64_t renderedGeneration{0};
 
     xoj::util::Point<int> gridCoordinates;  ///< Coordinates in the layout grid
 

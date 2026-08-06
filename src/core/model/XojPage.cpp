@@ -28,6 +28,7 @@ XojPage::XojPage(XojPage const& page):
         backgroundImage(page.backgroundImage),
         width(page.width),
         height(page.height),
+        infiniteCanvas(page.infiniteCanvas),
         currentLayer(page.currentLayer),
         bgType(page.bgType),
         pdfBackgroundPage(page.pdfBackgroundPage),
@@ -115,6 +116,7 @@ void XojPage::setBackgroundPdfPageNr(size_t page) {
     this->pdfBackgroundPage = page;
     this->bgType.format = PageTypeFormat::Pdf;
     this->bgType.config = "";
+    this->infiniteCanvas = false;
 }
 
 void XojPage::setBackgroundColor(Color color) { this->backgroundColor = color; }
@@ -129,6 +131,12 @@ void XojPage::setSize(double width, double height) {
 auto XojPage::getWidth() const -> double { return this->width; }
 
 auto XojPage::getHeight() const -> double { return this->height; }
+
+auto XojPage::isInfiniteCanvas() const -> bool { return this->infiniteCanvas; }
+
+void XojPage::setInfiniteCanvas(bool infinite) {
+    this->infiniteCanvas = infinite && !this->bgType.isPdfPage() && !this->bgType.isImagePage();
+}
 
 auto XojPage::getPdfPageNr() const -> size_t { return this->pdfBackgroundPage; }
 
@@ -149,6 +157,9 @@ void XojPage::setBackgroundType(const PageType& bgType) {
     }
     if (!bgType.isImagePage()) {
         this->backgroundImage.free();
+    }
+    if (bgType.isSpecial()) {
+        this->infiniteCanvas = false;
     }
 }
 

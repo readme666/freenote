@@ -74,6 +74,20 @@ private:
     gulong signalId{};
 };
 
+// Helper class for an open dialog which allows selecting several files.
+class MultiFileDlg {
+public:
+    MultiFileDlg(const char* title, std::function<void(std::vector<fs::path>)> callback);
+    ~MultiFileDlg() = default;
+
+    inline GtkWindow* getWindow() const { return window.get(); }
+
+private:
+    xoj::util::GtkWindowUPtr window;
+    std::function<void(std::vector<fs::path>)> callback;
+    gulong signalId{};
+};
+
 static GtkWindow* makeWindow(const char* title) {
     // Todo(maybe)
     // Restore previews using https://discourse.gnome.org/t/file-chooser-gtk-4-image-preview/11510/2
@@ -116,6 +130,53 @@ FileDlg::FileDlg(const char* title, std::function<void(fs::path, bool)> callback
 
 FileDlg::FileDlg(const char* title, std::function<void(fs::path)> callback):
         FileDlg(title, [cb = std::move(callback)](fs::path path, bool) { cb(std::move(path)); }) {}
+
+static auto getSelectedFiles(GtkFileChooser* chooser) -> std::vector<fs::path> {
+    std::vector<fs::path> paths;
+
+#if GTK_MAJOR_VERSION == 3
+    GSList* files = gtk_file_chooser_get_files(chooser);
+    for (GSList* item = files; item != nullptr; item = item->next) {
+        auto* file = G_FILE(item->data);
+        paths.emplace_back(Util::fromGFile(file));
+        g_object_unref(file);
+    }
+    g_slist_free(files);
+#else
+    xoj::util::GObjectSPtr<GListModel> files(gtk_file_chooser_get_files(chooser), xoj::util::adopt);
+    const guint count = g_list_model_get_n_items(files.get());
+    paths.reserve(count);
+    for (guint i = 0; i < count; ++i) {
+        xoj::util::GObjectSPtr<GFile> file(G_FILE(g_list_model_get_item(files.get(), i)), xoj::util::adopt);
+        paths.emplace_back(Util::fromGFile(file.get()));
+    }
+#endif
+
+    return paths;
+}
+
+MultiFileDlg::MultiFileDlg(const char* title, std::function<void(std::vector<fs::path>)> callback):
+        window(makeWindow(title)), callback(std::move(callback)) {
+    this->signalId = g_signal_connect(
+            window.get(), "response", G_CALLBACK(+[](GtkDialog* win, int response, gpointer data) {
+                auto* self = static_cast<MultiFileDlg*>(data);
+
+                if (response == GTK_RESPONSE_OK) {
+                    auto paths = getSelectedFiles(GTK_FILE_CHOOSER(win));
+
+                    // Close the chooser before invoking the callback, so that a load-error dialog can be displayed.
+                    if (!paths.empty()) {
+                        Util::execInUiThread([cb = std::move(self->callback), paths = std::move(paths)]() mutable {
+                            cb(std::move(paths));
+                        });
+                    }
+                }
+                // Closing the window causes another "response" signal, which we want to ignore.
+                g_signal_handler_disconnect(win, self->signalId);
+                gtk_window_close(self->getWindow());  // Destroys *self. Beware!
+            }),
+            this);
+}
 
 
 void xoj::OpenDlg::showOpenTemplateDialog(GtkWindow* parent, Settings* settings,
@@ -188,6 +249,31 @@ void xoj::OpenDlg::showOpenImageDialog(GtkWindow* parent, Settings* settings,
     }
 
     addAttachChoice(fc);
+
+    popup.show(parent);
+}
+
+void xoj::OpenDlg::showOpenImagesDialog(GtkWindow* parent, Settings* settings,
+                                        std::function<void(std::vector<fs::path>)> callback) {
+    auto popup = xoj::popup::PopupWindowWrapper<MultiFileDlg>(
+            _("Choose image files"), [cb = std::move(callback), settings](std::vector<fs::path> paths) mutable {
+                if (settings && !paths.empty()) {
+                    if (auto folder = paths.front().parent_path(); !folder.empty()) {
+                        settings->setLastImagePath(folder);
+                    }
+                }
+                cb(std::move(paths));
+            });
+
+    auto* fc = GTK_FILE_CHOOSER(popup.getPopup()->getWindow());
+
+    xoj::addFilterImages(fc);
+    xoj::addFilterAllFiles(fc);
+    gtk_file_chooser_set_select_multiple(fc, true);
+
+    if (settings && !settings->getLastImagePath().empty()) {
+        gtk_file_chooser_set_current_folder(fc, Util::toGFile(settings->getLastImagePath()).get(), nullptr);
+    }
 
     popup.show(parent);
 }

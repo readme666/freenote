@@ -10,6 +10,7 @@ using std::stringstream;
 PageTemplateSettings::PageTemplateSettings():
         copyLastPageSettings(true),
         copyLastPageSize(false),
+        infiniteCanvas(true),
         pageWidth(595.275591),
         pageHeight(841.889764),
         backgroundColor(Colors::white) {
@@ -27,6 +28,10 @@ void PageTemplateSettings::setCopyLastPageSettings(bool copyLastPageSettings) {
 auto PageTemplateSettings::isCopyLastPageSize() const -> bool { return this->copyLastPageSize; }
 
 void PageTemplateSettings::setCopyLastPageSize(bool copyLastPageSize) { this->copyLastPageSize = copyLastPageSize; }
+
+auto PageTemplateSettings::isInfiniteCanvas() const -> bool { return this->infiniteCanvas; }
+
+void PageTemplateSettings::setInfiniteCanvas(bool infiniteCanvas) { this->infiniteCanvas = infiniteCanvas; }
 
 auto PageTemplateSettings::getPageWidth() const -> double { return this->pageWidth; }
 
@@ -82,6 +87,8 @@ auto PageTemplateSettings::parse(const std::string& tpl) -> bool {
             copyLastPageSettings = value == "true";
         } else if (key == "copyLastPageSize") {
             copyLastPageSize = value == "true";
+        } else if (key == "infiniteCanvas") {
+            infiniteCanvas = value == "true";
         } else if (key == "size") {
             pos = value.find('x');
             pageWidth = std::stod(value.substr(0, pos));
@@ -106,6 +113,7 @@ auto PageTemplateSettings::toString() const -> string {
 
     str += string("copyLastPageSize=") + (copyLastPageSize ? "true" : "false") + "\n";
     str += string("copyLastPageSettings=") + (copyLastPageSettings ? "true" : "false") + "\n";
+    str += string("infiniteCanvas=") + (infiniteCanvas ? "true" : "false") + "\n";
     str += string("size=") + std::to_string(pageWidth) + "x" + std::to_string(pageHeight) + "\n";
     str += string("backgroundType=") + PageTypeHandler::getStringForPageTypeFormat(backgroundType.format) + "\n";
 

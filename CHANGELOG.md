@@ -12,6 +12,8 @@
 * Changed the default stabilizer for new configurations to the Google Ink Stroke Modeler (falling back to the 1€ filter when it is not compiled in); existing configurations keep their setting
 * Changed stylus tip-up detection to consult the raw device pressure and to apply to stylus devices only, so touch input with a pressure axis is no longer mistaken for a lifted tip
 * Fixed terminal ink spikes caused by zero-pressure lift motion and delayed tip-up timestamps
+* Added an endless-canvas page mode with automatic right/down growth and viewport-bounded rendering
+* Added multi-select image insertion with grouped placement and undo
 
 ## 1.3.6
 

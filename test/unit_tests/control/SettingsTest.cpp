@@ -52,6 +52,24 @@ TEST(SettingsTest, StabilizerParametersRejectNonFiniteAndOutOfRangeValues) {
     fs::remove(outPath);
 }
 
+TEST(SettingsTest, EndlessCanvasTemplateDefaultsAndRoundTrips) {
+    PageTemplateSettings defaults;
+    EXPECT_TRUE(defaults.isInfiniteCanvas());
+
+    // Existing configurations do not have the new key and must inherit the
+    // new default instead of silently becoming fixed-size templates.
+    ASSERT_TRUE(defaults.parse("xoj/template\nsize=595x842\nbackgroundType=lined\n"));
+    EXPECT_TRUE(defaults.isInfiniteCanvas());
+
+    defaults.setInfiniteCanvas(false);
+    PageTemplateSettings loaded;
+    ASSERT_TRUE(loaded.parse(defaults.toString()));
+    EXPECT_FALSE(loaded.isInfiniteCanvas());
+    EXPECT_DOUBLE_EQ(defaults.getPageWidth(), loaded.getPageWidth());
+    EXPECT_DOUBLE_EQ(defaults.getPageHeight(), loaded.getPageHeight());
+    EXPECT_EQ(defaults.getBackgroundType(), loaded.getBackgroundType());
+}
+
 // Rudimentary test for Settings save/load - very crude
 TEST(SettingsTest, testReadWrite) {
     auto saveReloadTest = [&](const fs::path& dir) {

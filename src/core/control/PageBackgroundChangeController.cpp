@@ -212,6 +212,7 @@ auto PageBackgroundChangeController::commitPageTypeChange(size_t pageNum, const 
     // Get values for Undo / Redo
     const double origW = page->getWidth();
     const double origH = page->getHeight();
+    const bool origInfiniteCanvas = page->isInfiniteCanvas();
     BackgroundImage origBackgroundImage = page->getBackgroundImage();
     const size_t origPdfPage = page->getPdfPageNr();
     PageType origType = page->getBackgroundType();
@@ -227,7 +228,7 @@ auto PageBackgroundChangeController::commitPageTypeChange(size_t pageNum, const 
     }
 
     return std::make_unique<PageBackgroundChangedUndoAction>(page, origType, origPdfPage, origBackgroundImage, origW,
-                                                             origH);
+                                                             origH, origInfiniteCanvas);
 }
 auto PageBackgroundChangeController::commitPageSizeChange(const size_t pageNum, const PaperSize& pageSize)
         -> std::unique_ptr<UndoAction> {
@@ -245,16 +246,18 @@ auto PageBackgroundChangeController::commitPageSizeChange(const size_t pageNum, 
     // Get values for Undo / Redo
     const double origW = page->getWidth();
     const double origH = page->getHeight();
+    const bool origInfiniteCanvas = page->isInfiniteCanvas();
     BackgroundImage origBackgroundImage = page->getBackgroundImage();
     const size_t origPdfPage = page->getPdfPageNr();
     PageType origType = page->getBackgroundType();
 
     page->setSize(pageSize.width, pageSize.height);
+    page->setInfiniteCanvas(false);
     doc->unlock();
 
     control->firePageSizeChanged(pageNr);
     return std::make_unique<PageBackgroundChangedUndoAction>(page, origType, origPdfPage, origBackgroundImage, origW,
-                                                             origH);
+                                                             origH, origInfiniteCanvas);
 }
 
 void PageBackgroundChangeController::askForImageBackground(std::function<void(BackgroundImage)> callback) {
@@ -299,6 +302,7 @@ void PageBackgroundChangeController::copyBackgroundFromOtherPage(PageRef target,
     } else {
         // Copy the background color
         target->setBackgroundColor(source->getBackgroundColor());
+        target->setInfiniteCanvas(source->isInfiniteCanvas());
     }
 }
 
@@ -324,6 +328,12 @@ void PageBackgroundChangeController::insertNewPage(size_t position, bool automat
     if (paperSizeForNewPages) {
         width = paperSizeForNewPages->width;
         height = paperSizeForNewPages->height;
+    } else if (current->isInfiniteCanvas()) {
+        // A newly inserted endless page should start at the configured seed
+        // size, not inherit a potentially kilometres-wide expanded extent.
+        const auto& model = control->getSettings()->getPageTemplateSettings();
+        width = model.getPageWidth();
+        height = model.getPageHeight();
     } else {
         width = current->getWidth();
         height = current->getHeight();
@@ -354,6 +364,7 @@ void PageBackgroundChangeController::insertNewPage(size_t position, bool automat
         // Set background Color
         const auto& model = control->getSettings()->getPageTemplateSettings();
         page->setBackgroundColor(model.getBackgroundColor());
+        page->setInfiniteCanvas(model.isInfiniteCanvas());
 
         afterConfigured(std::move(page));
     }

@@ -26,7 +26,8 @@ class Control;
 class PageBackgroundChangedUndoAction: public UndoAction {
 public:
     PageBackgroundChangedUndoAction(const PageRef& page, const PageType& origType, size_t origPdfPage,
-                                    BackgroundImage origBackgroundImage, double origW, double origH);
+                                    BackgroundImage origBackgroundImage, double origW, double origH,
+                                    bool origInfiniteCanvas = false);
     ~PageBackgroundChangedUndoAction() override;
 
 public:
@@ -41,10 +42,12 @@ private:
     BackgroundImage origBackgroundImage;
     double origW;
     double origH;
+    bool origInfiniteCanvas = false;
 
     PageType newType;
     size_t newPdfPage = npos;
     BackgroundImage newBackgroundImage;
     double newW = 0;
     double newH = 0;
+    bool newInfiniteCanvas = false;
 };

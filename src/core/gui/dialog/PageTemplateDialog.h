@@ -76,5 +76,6 @@ private:
     GtkColorChooser* backgroundColorChooser;
     GtkToggleButton* copyLastPageButton;
     GtkToggleButton* copyLastPageSizeButton;
+    GtkToggleButton* infiniteCanvasButton;
 };
 };  // namespace xoj::popup

@@ -13,7 +13,7 @@
 PageBackgroundChangedUndoAction::PageBackgroundChangedUndoAction(const PageRef& page, const PageType& origType,
                                                                  size_t origPdfPage,
                                                                  BackgroundImage origBackgroundImage, double origW,
-                                                                 double origH):
+                                                                 double origH, bool origInfiniteCanvas):
         UndoAction("PageBackgroundChangedUndoAction") {
     this->page = page;
     this->origType = origType;
@@ -21,6 +21,7 @@ PageBackgroundChangedUndoAction::PageBackgroundChangedUndoAction(const PageRef& 
     this->origBackgroundImage = std::move(origBackgroundImage);
     this->origW = origW;
     this->origH = origH;
+    this->origInfiniteCanvas = origInfiniteCanvas;
     this->newType.format = PageTypeFormat::Plain;
 }
 
@@ -34,6 +35,7 @@ auto PageBackgroundChangedUndoAction::undo(Control* control) -> bool {
     this->newBackgroundImage = this->page->getBackgroundImage();
     this->newW = this->page->getWidth();
     this->newH = this->page->getHeight();
+    this->newInfiniteCanvas = this->page->isInfiniteCanvas();
 
     auto pageNr = doc->indexOf(this->page);
     if (pageNr == npos) {
@@ -42,6 +44,7 @@ auto PageBackgroundChangedUndoAction::undo(Control* control) -> bool {
     }
 
     bool pageSizeChanged = this->newW != this->origW || this->newH != this->origH;
+    const bool canvasModeChanged = this->newInfiniteCanvas != this->origInfiniteCanvas;
     if (pageSizeChanged) {
         this->page->setSize(this->origW, this->origH);
     }
@@ -52,9 +55,10 @@ auto PageBackgroundChangedUndoAction::undo(Control* control) -> bool {
     } else if (this->origType.isImagePage()) {
         this->page->setBackgroundImage(this->origBackgroundImage);
     }
+    this->page->setInfiniteCanvas(this->origInfiniteCanvas);
 
     doc->unlock();
-    if (pageSizeChanged) {
+    if (pageSizeChanged || canvasModeChanged) {
         control->firePageSizeChanged(pageNr);
     }
     control->firePageChanged(pageNr);
@@ -74,7 +78,8 @@ auto PageBackgroundChangedUndoAction::redo(Control* control) -> bool {
     }
 
     bool pageSizeChanged = this->newW != this->origW || this->newH != this->origH;
-    if (pageSizeChanged) {
+    const bool canvasModeChanged = this->newInfiniteCanvas != this->origInfiniteCanvas;
+    if (pageSizeChanged || canvasModeChanged) {
         this->page->setSize(this->newW, this->newH);
     }
 
@@ -84,9 +89,10 @@ auto PageBackgroundChangedUndoAction::redo(Control* control) -> bool {
     } else if (this->newType.isImagePage()) {
         this->page->setBackgroundImage(this->newBackgroundImage);
     }
+    this->page->setInfiniteCanvas(this->newInfiniteCanvas);
 
     doc->unlock();
-    if (pageSizeChanged) {
+    if (pageSizeChanged || canvasModeChanged) {
         control->firePageSizeChanged(pageNr);
     }
     control->firePageChanged(pageNr);

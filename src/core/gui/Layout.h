@@ -167,6 +167,8 @@ private:
     void computePrecalculated();
 
     void maybeAddLastPage(Layout* layout);
+    void maybeExpandInfiniteCanvas(bool expandHorizontal, bool expandVertical);
+    bool hasInfiniteCanvas() const;
 
 public:
     struct PreCalculated {
@@ -204,4 +206,6 @@ private:
 
     /// Used to have only one call when zooming in/out
     bool blockHorizontalCallback = false;
+
+    bool expandingInfiniteCanvas = false;
 };

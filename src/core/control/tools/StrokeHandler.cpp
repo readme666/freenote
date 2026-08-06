@@ -231,7 +231,8 @@ void StrokeHandler::onButtonReleaseEvent(const PositionInputData& pos, double) {
     undo->addUndoAction(std::make_unique<InsertUndoAction>(page, layer, stroke.get()));
 
     Settings* settings = control->getSettings();
-    if (settings->getEmptyLastPageAppend() == EmptyLastPageAppendType::OnDrawOfLastPage) {
+    if (!page->isInfiniteCanvas() &&
+        settings->getEmptyLastPageAppend() == EmptyLastPageAppendType::OnDrawOfLastPage) {
         auto* doc = control->getDocument();
         doc->lock_shared();
         auto pdfPageCount = doc->getPdfPageCount();

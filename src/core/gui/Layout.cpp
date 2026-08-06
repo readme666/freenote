@@ -15,6 +15,7 @@
 #include "gui/PageView.h"               // for XojPageView
 #include "gui/scroll/ScrollHandling.h"  // for ScrollHandling
 #include "model/Document.h"             // for Document
+#include "model/XojPage.h"              // for XojPage
 #include "util/Range.h"                 // for Range
 #include "util/Rectangle.h"             // for Rectangle
 #include "util/safe_casts.h"            // for strict_cast, as_signed, as_si...
@@ -47,23 +48,120 @@ Layout::Layout(XournalView* view, ScrollHandling* scrollHandling): view(view), s
 }
 
 void Layout::horizontalScrollChanged(GtkAdjustment* adjustment, Layout* layout) {
-    layout->lastScrollHorizontal = gtk_adjustment_get_value(adjustment);
+    const double newValue = gtk_adjustment_get_value(adjustment);
+    const bool movingTowardsEnd = newValue > layout->lastScrollHorizontal + 0.5;
+    layout->lastScrollHorizontal = newValue;
     if (!layout->blockHorizontalCallback) {
+        if (movingTowardsEnd) {
+            layout->maybeExpandInfiniteCanvas(true, false);
+        }
         layout->updateVisibility();
         gtk_widget_queue_draw(layout->view->getWidget());
     }
 }
 
 void Layout::verticalScrollChanged(GtkAdjustment* adjustment, Layout* layout) {
-    layout->lastScrollVertical = gtk_adjustment_get_value(adjustment);
+    const double newValue = gtk_adjustment_get_value(adjustment);
+    const bool movingTowardsEnd = newValue > layout->lastScrollVertical + 0.5;
+    layout->lastScrollVertical = newValue;
+    if (movingTowardsEnd) {
+        layout->maybeExpandInfiniteCanvas(false, true);
+    }
     layout->updateVisibility();
     layout->maybeAddLastPage(layout);
     gtk_widget_queue_draw(layout->view->getWidget());
 }
 
+auto Layout::hasInfiniteCanvas() const -> bool {
+    const auto& pages = this->view->getViewPages();
+    // Global reserve and no-centering are document-wide layout properties.
+    // Keep the ordinary layout when an endless page is mixed with a fixed or
+    // PDF page; individual endless pages still grow from input/content bounds.
+    return !pages.empty() && std::all_of(pages.begin(), pages.end(),
+                                         [](const auto& pageView) { return pageView->getPage()->isInfiniteCanvas(); });
+}
+
+void Layout::maybeExpandInfiniteCanvas(bool expandHorizontal, bool expandVertical) {
+    if (this->expandingInfiniteCanvas) {
+        return;
+    }
+
+    const auto visible = getVisibleRect();
+    const double zoom = this->view->getZoom();
+    if (zoom <= 0.0 || visible.width < 64.0 || visible.height < 64.0) {
+        return;
+    }
+
+    const auto& views = this->view->getViewPages();
+    const size_t selectedPage = this->view->getCurrentPage();
+    for (size_t pageNo = 0; pageNo < views.size(); ++pageNo) {
+        const auto& pageView = views[pageNo];
+        const auto& page = pageView->getPage();
+        // Scrolling past a non-final page means navigation to the following
+        // page, not a request to keep pushing that page away.  Earlier endless
+        // pages still grow when actual pen/mouse input approaches their edge.
+        if (!page->isInfiniteCanvas() || pageNo != selectedPage || pageNo + 1 != views.size()) {
+            continue;
+        }
+
+        const auto pagePos = getPixelCoordinatesOfEntry(pageNo);
+        const double visibleRight = (visible.x + visible.width - pagePos.x) / zoom;
+        const double visibleBottom = (visible.y + visible.height - pagePos.y) / zoom;
+        const double viewportWidth = visible.width / zoom;
+        const double viewportHeight = visible.height / zoom;
+
+        // Ignore canvases which are wholly outside the viewport.  We still allow
+        // the viewport to enter the right/bottom reserve belonging to this page.
+        if (visibleRight < 0.0 || visibleBottom < 0.0 ||
+            visible.x > pagePos.x + page->getWidth() * zoom + visible.width ||
+            visible.y > pagePos.y + page->getHeight() * zoom + visible.height) {
+            continue;
+        }
+
+        const double widthChunk = std::max(300.0, viewportWidth * 0.5);
+        const double heightChunk = std::max(400.0, viewportHeight * 0.5);
+        double newWidth = page->getWidth();
+        double newHeight = page->getHeight();
+
+        if (expandHorizontal && visibleRight >= page->getWidth() - viewportWidth * 0.25) {
+            const double requested = std::max(page->getWidth(), visibleRight + viewportWidth * 0.5);
+            newWidth = std::ceil(requested / widthChunk) * widthChunk;
+        }
+        if (expandVertical && visibleBottom >= page->getHeight() - viewportHeight * 0.25) {
+            const double requested = std::max(page->getHeight(), visibleBottom + viewportHeight * 0.5);
+            newHeight = std::ceil(requested / heightChunk) * heightChunk;
+        }
+
+        if (newWidth <= page->getWidth() && newHeight <= page->getHeight()) {
+            continue;
+        }
+
+        auto* control = this->view->getControl();
+        auto* document = control->getDocument();
+        this->expandingInfiniteCanvas = true;
+        document->lock();
+        const size_t currentPageNo = document->indexOf(page);
+        if (currentPageNo != npos) {
+            page->setSize(newWidth, newHeight);
+        }
+        document->unlock();
+        if (currentPageNo != npos) {
+            control->firePageSizeChanged(currentPageNo);
+        }
+        this->expandingInfiniteCanvas = false;
+        return;  // The relayout invalidated all cached page positions.
+    }
+}
+
 void Layout::maybeAddLastPage(Layout* layout) {
     auto* control = this->view->getControl();
     auto* settings = control->getSettings();
+    const auto& currentPage = control->getCurrentPage();
+    if (currentPage && currentPage->isInfiniteCanvas()) {
+        // The endless page itself supplies more space; automatic page append
+        // would turn every scroll-to-edge into an unintended finite page.
+        return;
+    }
     if (settings->getEmptyLastPageAppend() == EmptyLastPageAppendType::OnScrollToEndOfLastPage) {
         // If the layout is 5px away from the end of the last page
         if (std::abs((layout->getTotalPixelHeight() - layout->getVisibleRect().y) - layout->getVisibleRect().height) <
@@ -342,6 +440,11 @@ void Layout::computePrecalculated() {
         pc.paddingTop += settings->getAddVerticalSpaceAmountAbove();
         pc.paddingBottom += settings->getAddVerticalSpaceAmountBelow();
     }
+    if (hasInfiniteCanvas()) {
+        pc.paddingBottom = std::max(
+                pc.paddingBottom,
+                XOURNAL_PADDING + round_cast<int>(gtk_adjustment_get_page_size(scrollHandling->getVertical())));
+    }
 
     pc.paddingLeft = XOURNAL_PADDING;
     pc.paddingRight = XOURNAL_PADDING;
@@ -352,12 +455,22 @@ void Layout::computePrecalculated() {
         pc.paddingLeft += settings->getAddHorizontalSpaceAmountLeft();
         pc.paddingRight += settings->getAddHorizontalSpaceAmountRight();
     }
+    if (hasInfiniteCanvas()) {
+        pc.paddingRight = std::max(
+                pc.paddingRight,
+                XOURNAL_PADDING + round_cast<int>(gtk_adjustment_get_page_size(scrollHandling->getHorizontal())));
+    }
 
     recomputeCenteringPaddingUnsafe(gtk_widget_get_allocated_width(view->getWidget()),
                                     gtk_widget_get_allocated_height(view->getWidget()));
 }
 
 void Layout::recomputeCenteringPaddingUnsafe(int allocWidth, int allocHeight) {
+    if (hasInfiniteCanvas()) {
+        pc.horizontalCenteringPadding = 0;
+        pc.verticalCenteringPadding = 0;
+        return;
+    }
     if (int w = getMinimalPixelWidthUnsafe(); w < allocWidth) {
         // We have more space than needed: add padding to center the content
         pc.horizontalCenteringPadding = (allocWidth - w) / 2;
@@ -467,6 +580,28 @@ auto Layout::getPageViewAt(int x, int y) const -> XojPageView* {
 
     if (optionalPage && this->view->getViewPages()[*optionalPage]->containsPoint(x, y, false)) {
         return this->view->getViewPages()[*optionalPage].get();
+    }
+
+    // The right/bottom reserve is part of an endless page for input purposes.
+    // The page will acquire a finite stored extent before the input is committed.
+    const auto& pages = this->view->getViewPages();
+    const int horizontalReserve = round_cast<int>(gtk_adjustment_get_page_size(scrollHandling->getHorizontal()));
+    const int verticalReserve = round_cast<int>(gtk_adjustment_get_page_size(scrollHandling->getVertical()));
+    for (size_t pageNo = 0; pageNo < pages.size(); ++pageNo) {
+        const auto& pageView = pages[pageNo];
+        if (!pageView->getPage()->isInfiniteCanvas()) {
+            continue;
+        }
+
+        const auto pos = getPixelCoordinatesOfEntry(pageNo);
+        const int right = pos.x + pageView->getDisplayWidth();
+        const int bottom = pos.y + pageView->getDisplayHeight();
+        const bool isLastPage = pageNo + 1 == pages.size();
+        const int extendedBottom = bottom + (isLastPage ? verticalReserve : 0);
+        const bool inReserve = x >= pos.x && x <= right + horizontalReserve && y >= pos.y && y <= extendedBottom;
+        if (inReserve) {
+            return pageView.get();
+        }
     }
 
     return nullptr;

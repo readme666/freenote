@@ -685,6 +685,7 @@ void Control::addDefaultPage(const std::optional<PageTemplateSettings>& pageTemp
     auto page = std::make_shared<XojPage>(model.getPageWidth(), model.getPageHeight());
     page->setBackgroundColor(model.getBackgroundColor());
     page->setBackgroundType(model.getBackgroundType());
+    page->setInfiniteCanvas(model.isInfiniteCanvas());
 
     if (doc == nullptr || doc == this->doc) {
         // Apply to the curent document
@@ -976,11 +977,14 @@ void Control::paperFormat() {
                 ctrl->doc->lock();
                 double oldW = page->getWidth();
                 double oldH = page->getHeight();
+                bool oldInfiniteCanvas = page->isInfiniteCanvas();
                 Document::setPageSize(page, width, height);
+                page->setInfiniteCanvas(false);
                 size_t pageNo = ctrl->doc->indexOf(page);
                 size_t pageCount = ctrl->doc->getPageCount();
                 ctrl->doc->unlock();
-                ctrl->undoRedo->addUndoAction(std::make_unique<PageSizeChangeUndoAction>(page, oldW, oldH));
+                ctrl->undoRedo->addUndoAction(
+                        std::make_unique<PageSizeChangeUndoAction>(page, oldW, oldH, oldInfiniteCanvas));
                 if (pageNo != npos && pageNo < pageCount) {
                     ctrl->firePageSizeChanged(pageNo);
                 }

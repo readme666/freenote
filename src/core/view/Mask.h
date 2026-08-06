@@ -14,9 +14,8 @@
 #include <cairo.h>
 #include <gdk/gdk.h>
 
+#include "util/Range.h"
 #include "util/raii/CairoWrappers.h"
-
-class Range;
 
 namespace xoj::view {
 
@@ -78,6 +77,15 @@ public:
     void reset();
 
     inline double getZoom() const { return zoom; }
+    inline const Range& getExtent() const { return extent; }
+
+    /**
+     * @return true if the requested range is fully covered by this mask.
+     *
+     * The mask extent is expressed in page coordinates, just like the ranges
+     * passed to the constructors.
+     */
+    bool contains(const Range& range) const;
 
 private:
     template <typename DPIInfoType>
@@ -87,5 +95,6 @@ private:
     int xOffset = 0;
     int yOffset = 0;
     double zoom = 1.0;
+    Range extent;
 };
 };  // namespace xoj::view

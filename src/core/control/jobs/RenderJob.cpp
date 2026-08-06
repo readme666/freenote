@@ -35,7 +35,8 @@ RenderJob::RenderJob(XojPageView* view): view(view) {}
 
 auto RenderJob::getSource() -> void* { return this->view; }
 
-void RenderJob::rerenderRectangle(Rectangle<double> const& rect) {
+void RenderJob::rerenderRectangle(Rectangle<double> const& rect, double renderZoom, uint64_t generation,
+                                  bool infiniteCanvas) {
     /**
      * Padding seems to be necessary to prevent artefacts of most strokes.
      * These artefacts are most pronounced when using the stroke deletion
@@ -46,13 +47,27 @@ void RenderJob::rerenderRectangle(Rectangle<double> const& rect) {
 
     Range maskRange(rect);
     maskRange.addPadding(RENDER_PADDING);
-    xoj::view::Mask newMask(view->xournal->getDpiScaleFactor(), maskRange, view->xournal->getZoom(),
-                            CAIRO_CONTENT_COLOR_ALPHA);
+
+    if (infiniteCanvas) {
+        std::lock_guard lock(this->view->drawingMutex);
+        if (generation != view->renderGeneration.load() || generation != view->renderedGeneration.load() ||
+            !view->buffer.isInitialized() || view->buffer.getZoom() != renderZoom) {
+            return;
+        }
+        maskRange = maskRange.intersect(view->buffer.getExtent());
+        if (maskRange.empty() || maskRange.getWidth() <= 0.0 || maskRange.getHeight() <= 0.0) {
+            return;
+        }
+    }
+
+    xoj::view::Mask newMask(view->xournal->getDpiScaleFactor(), maskRange, renderZoom, CAIRO_CONTENT_COLOR_ALPHA);
 
     renderToBuffer(newMask.get());
 
     std::lock_guard lock(this->view->drawingMutex);
-    if (!view->buffer.isInitialized()) {
+    if (generation != view->renderGeneration.load() || !view->buffer.isInitialized() ||
+        view->buffer.getZoom() != renderZoom ||
+        (infiniteCanvas && (generation != view->renderedGeneration.load() || !view->buffer.contains(maskRange)))) {
         // Todo: the buffer must not be uninitializable here, either by moving it into the job or by locking it at job
         // creation a shared prt may also be suffice.
         XOJ_CPP20_UNLIKELY return;
@@ -61,25 +76,43 @@ void RenderJob::rerenderRectangle(Rectangle<double> const& rect) {
 }
 
 void RenderJob::run() {
-    this->view->repaintRectMutex.lock();
-
-    bool rerenderComplete = std::exchange(this->view->rerenderComplete, false);
-    bool sizeChanged = std::exchange(this->view->sizeChanged, false);
-    auto rerenderRects = std::move(this->view->rerenderRects);
-
-    this->view->repaintRectMutex.unlock();
+    bool rerenderComplete;
+    bool sizeChanged;
+    std::vector<Rectangle<double>> rerenderRects;
+    Range fullRenderRange;
+    double renderZoom;
+    uint64_t generation;
+    bool infiniteCanvas;
+    {
+        std::lock_guard lock(this->view->repaintRectMutex);
+        rerenderComplete = std::exchange(this->view->rerenderComplete, false);
+        sizeChanged = std::exchange(this->view->sizeChanged, false);
+        rerenderRects = std::move(this->view->rerenderRects);
+        fullRenderRange = this->view->fullRenderRange;
+        renderZoom = this->view->fullRenderZoom;
+        generation = this->view->renderGeneration.load();
+        infiniteCanvas = this->view->fullRenderInfiniteCanvas;
+    }
 
     if (rerenderComplete) {
-        xoj::view::Mask newMask(view->xournal->getDpiScaleFactor(),
-                                Range(0, 0, view->page->getWidth(), view->page->getHeight()), view->xournal->getZoom(),
+        if (fullRenderRange.empty() || fullRenderRange.getWidth() <= 0.0 || fullRenderRange.getHeight() <= 0.0 ||
+            renderZoom <= 0.0) {
+            return;
+        }
+
+        xoj::view::Mask newMask(view->xournal->getDpiScaleFactor(), fullRenderRange, renderZoom,
                                 CAIRO_CONTENT_COLOR_ALPHA);
 
         renderToBuffer(newMask.get());
         {
             std::lock_guard lock(this->view->drawingMutex);
+            if (generation != this->view->renderGeneration.load()) {
+                return;
+            }
             std::swap(this->view->buffer, newMask);
+            this->view->renderedGeneration.store(generation);
         }
-        if (sizeChanged) {
+        if (sizeChanged || infiniteCanvas) {
             // We do not have any control on what portion of the widget needs to be redrawn. Redraw it all.
             Util::execInUiThread([w = view->xournal->getWidget()]() { gtk_widget_queue_draw(w); });
         } else {
@@ -87,7 +120,7 @@ void RenderJob::run() {
         }
     } else {
         for (Rectangle<double> const& rect: rerenderRects) {
-            rerenderRectangle(rect);
+            rerenderRectangle(rect, renderZoom, generation, infiniteCanvas);
             repaintPageArea(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
         }
     }

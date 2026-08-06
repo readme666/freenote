@@ -85,7 +85,7 @@ private:
     // interface for XmlParser
     void addDocument(std::u8string creator, int fileVersion) override;
     void finalizeDocument() override;
-    void addPage(double width, double height) override;
+    void addPage(double width, double height, bool infiniteCanvas) override;
     void finalizePage() override;
     void addAudioAttachment(const fs::path& filename) override;
     void setBgName(const std::string& name) override;
