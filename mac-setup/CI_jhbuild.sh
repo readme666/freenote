@@ -5,7 +5,7 @@ mkdir -p "$HOME/.local/bin" && printf '%s\n' \
   '#!/usr/bin/env bash' \
   'for dir in ${PATH//:/ }; do' \
   '  [ "$dir" = "$HOME/.local/bin" ] && continue' \
-  '  if [ -x "$dir/wget" ]; then exec "$dir/wget" --tries=10 --retry-connrefused --waitretry=3 "$@"; fi' \
+  '  if [ -x "$dir/wget" ]; then exec "$dir/wget" --tries=20 --retry-connrefused --waitretry=3 --retry-on-http-error=502,503,504 "$@"; fi' \
   'done' \
   'echo "wget shim: no real wget found in PATH" >&2' \
   'exit 1' > "$HOME/.local/bin/wget" && chmod +x "$HOME/.local/bin/wget" && export PATH="$HOME/.local/bin:$PATH"
