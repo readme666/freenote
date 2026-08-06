@@ -28,6 +28,16 @@ on:
       extra_cmake_flags:
         type: string
         default: ''
+      artifact_version_suffix:  # Additional version string appended to 1.2.3+dev (for instance) in artifacts names
+        type: string
+        default: ''
+    outputs:
+      link:
+        description: URL of the produced installer
+        value: ${{ jobs.release-windows.outputs.link }}
+      link_portable:
+        description: URL of the portable version (if produced)
+        value: ${{ jobs.release-windows.outputs.link_portable }}
   workflow_dispatch:
     inputs:
       runner:
@@ -56,16 +66,9 @@ on:
       extra_cmake_flags:
         type: string
         default: ''
-      artifact_version_suffix:  # Additional version string appended to 1.2.3+dev (for instance) in artifacts names
+      artifact_version_suffix:
         type: string
         default: ''
-    outputs:
-      link:
-        description: URL of the produced installer
-        value: ${{ jobs.release-windows.outputs.link }}
-      link_portable:
-        description: URL of the portable version (if produced)
-        value: ${{ jobs.release-windows.outputs.link_portable }}
 
 jobs:
   release-windows:
