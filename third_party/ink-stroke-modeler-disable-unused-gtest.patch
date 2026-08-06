@@ -1,0 +1,41 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5c90e09..989c6da 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -69,19 +69,23 @@ if(INK_STROKE_MODELER_BUILD_TESTING)
+   set(ABSL_BUILD_TEST_HELPERS ON)
+ endif()
+ 
+-if(INK_STROKE_MODELER_FIND_GTEST)
+-  find_package(googletest REQUIRED)
+-else()
+-  FetchContent_Declare(
+-    googletest
+-    GIT_REPOSITORY ${gtest_URL}
+-    GIT_TAG        ${gtest_TAG}
+-    GIT_PROGRESS   TRUE
+-  )
+-  FetchContent_MakeAvailable(googletest)
+-  set(GTEST_LIBRARY GOOGLETEST_LIBRARY)
+-  set(GTEST_INCLUDE_DIR GOOGLETEST_INCLUDE_DIR)
+-  set(GTEST_MAIN_LIBRARY GOOGLETEST_MAIN_LIBRARY)
++# Xournal++ downstream modification: tests are disabled when this project is
++# embedded, so do not require or fetch GoogleTest in that configuration.
++if(INK_STROKE_MODELER_BUILD_TESTING)
++  if(INK_STROKE_MODELER_FIND_GTEST)
++    find_package(googletest REQUIRED)
++  else()
++    FetchContent_Declare(
++      googletest
++      GIT_REPOSITORY ${gtest_URL}
++      GIT_TAG        ${gtest_TAG}
++      GIT_PROGRESS   TRUE
++    )
++    FetchContent_MakeAvailable(googletest)
++    set(GTEST_LIBRARY GOOGLETEST_LIBRARY)
++    set(GTEST_INCLUDE_DIR GOOGLETEST_INCLUDE_DIR)
++    set(GTEST_MAIN_LIBRARY GOOGLETEST_MAIN_LIBRARY)
++  endif()
+ endif()
+ 
+ set(ABSL_USE_EXTERNAL_GOOGLETEST ON)
