@@ -2,7 +2,7 @@
 <!-- Copyright 2019 Tobias Mueller <tobiasmue@gnome.org>  -->
 <component type="desktop">
   <id>io.github.readme666.freenote</id>
-  <translation type="gettext">xournalpp</translation>
+  <translation type="gettext">freenote</translation>
   <name>freenote</name>
   <summary>Take handwritten notes</summary>
   <developer_name>freenote Developers</developer_name>
@@ -48,9 +48,9 @@
   </description>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0</project_license>
-  <url type="bugtracker">https://github.com/xournalpp/xournalpp/issues</url>
+  <url type="bugtracker">https://github.com/readme666/freenote/issues</url>
   <url type="help">https://xournalpp.github.io/community/help/</url>
-  <url type="homepage">https://xournalpp.github.io/</url>
+  <url type="homepage">https://github.com/readme666/freenote</url>
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/xournalpp/xournalpp-examples/6aaf99756b0cc6a9d600b72490766330601daa67/appdata/screenshots_1.2.7/Note_taking.png</image>
@@ -71,8 +71,8 @@
   </branding>
   <launchable type="desktop-id">io.github.readme666.freenote.desktop</launchable>
   <provides>
-    <id>xournalpp.desktop</id>
-    <binary>xournalpp</binary>
+    <id>io.github.readme666.freenote.desktop</id>
+    <binary>freenote</binary>
     <mediatype>application/x-xojpp</mediatype>
     <mediatype>application/x-xopp</mediatype>
     <mediatype>application/x-xopt</mediatype>

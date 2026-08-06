@@ -546,14 +546,14 @@ if (CPACK_GENERATOR MATCHES "DEB")
     message("Preparing documentation for DEB package")
     add_custom_target(package_documentation ALL)
 
-    #Compress changelog and save it as share/doc/xournalpp/changelog.Debian.gz
+    #Compress changelog and save it as share/doc/freenote/changelog.Debian.gz
     add_custom_command(TARGET package_documentation PRE_BUILD
             COMMAND gzip -c -9 -n "${PROJECT_SOURCE_DIR}/debian/changelog" > "changelog.Debian.gz" VERBATIM)
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/changelog.Debian.gz" DESTINATION "share/doc/xournalpp/")
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/changelog.Debian.gz" DESTINATION "share/doc/freenote/")
 
     message("Install copyright for DEB package")
-    #Copy copyright to share/doc/xournalpp/copyright
-    install(FILES "${PROJECT_SOURCE_DIR}/debian/copyright" DESTINATION "share/doc/xournalpp/")
+    #Copy copyright to share/doc/freenote/copyright
+    install(FILES "${PROJECT_SOURCE_DIR}/debian/copyright" DESTINATION "share/doc/freenote/")
 endif ()
 
 if (NOT DEFINED CPACK_GENERATOR)

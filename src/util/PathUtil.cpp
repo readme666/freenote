@@ -406,7 +406,7 @@ auto Util::getCacheFile(const fs::path& relativeFileName) -> fs::path {
 
 auto Util::getTmpDirSubfolder(const fs::path& subfolder) -> fs::path {
     auto p = GFilename(g_get_tmp_dir()).toPath().value_or(fs::path());
-    p /= FS(_F("xournalpp-{1}") % Util::getPid());
+    p /= FS(_F("freenote-{1}") % Util::getPid());
     p /= subfolder;
     return Util::ensureFolderExists(p);
 }

@@ -121,7 +121,7 @@ if (WIN32)
   find_package(ImageMagick REQUIRED COMPONENTS magick)
   set (ICON_SIZES 16 32 48 256)
   foreach (SIZE IN LISTS ICON_SIZES)
-    set (RESIZED_ICON ${PROJECT_BINARY_DIR}/xournalpp-icon-${SIZE}.png)
+    set (RESIZED_ICON ${PROJECT_BINARY_DIR}/freenote-icon-${SIZE}.png)
     add_custom_command (
                 OUTPUT ${RESIZED_ICON}
                 COMMAND rsvg-convert ${PROJECT_SOURCE_DIR}/ui/pixmaps/freenote.svg --width=${SIZE} --height=${SIZE} -o ${RESIZED_ICON}
@@ -130,15 +130,15 @@ if (WIN32)
   unset (RESIZED_ICON)
   endforeach()
   add_custom_command (
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/win32/xournalpp.ico
-                COMMAND magick convert ${ICON_DEPS} ${CMAKE_CURRENT_BINARY_DIR}/win32/xournalpp.ico
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/win32/freenote.ico
+                COMMAND magick convert ${ICON_DEPS} ${CMAKE_CURRENT_BINARY_DIR}/win32/freenote.ico
                 DEPENDS ${ICON_DEPS}
   )
   unset(ICON_SIZES)
   unset(ICON_DEPS)
-  add_custom_target(xournalpp_icon DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/win32/xournalpp.ico)
-  add_dependencies(freenote xournalpp_icon)
-  add_dependencies(freenote-wrapper xournalpp_icon)
+  add_custom_target(freenote_icon DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/win32/freenote.ico)
+  add_dependencies(freenote freenote_icon)
+  add_dependencies(freenote-wrapper freenote_icon)
   
   # windows specific source files
   target_sources(freenote PRIVATE exe/win32/console.cpp)
@@ -168,7 +168,7 @@ install(TARGETS freenote-wrapper
         )
 install(TARGETS freenote
         RUNTIME DESTINATION bin
-        COMPONENT xournalpp
+        COMPONENT freenote
         )
 
 add_subdirectory(xoj-preview-extractor)

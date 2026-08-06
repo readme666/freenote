@@ -64,6 +64,6 @@ Create the installer with
 ./windows-setup/package.sh build/
 ```
 
-The installer will be located at `build/xournalpp-setup.exe`. This
+The installer will be located at `build/freenote-setup.exe`. This
 command will also create a portable version of Xournal++ located in
 `build/dist`.

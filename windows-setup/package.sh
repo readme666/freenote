@@ -31,9 +31,9 @@ echo "copy installed files"
 (cd $build_dir && cmake --install . --prefix "$setup_dir")
 
 echo "copy libraries"
-ldd "$build_dir/xournalpp.exe" | grep "${prefix}.*\.dll" -o | sort -u | xargs -I{} cp "{}" "$setup_dir"/bin/
+ldd "$build_dir/freenote.exe" | grep "${prefix}.*\.dll" -o | sort -u | xargs -I{} cp "{}" "$setup_dir"/bin/
 # CI workaround: copy libcrypto and libssl in case they are not already copied.
-ldd "$build_dir/xournalpp.exe" | grep -E 'lib(ssl|crypto)[^\.]*\.dll' -o | sort -u | xargs -I{} cp "${prefix}/bin/{}" "$setup_dir"/bin/
+ldd "$build_dir/freenote.exe" | grep -E 'lib(ssl|crypto)[^\.]*\.dll' -o | sort -u | xargs -I{} cp "${prefix}/bin/{}" "$setup_dir"/bin/
 
 echo "Installing GTK/Glib translations"
 # Copy system locale files
@@ -99,11 +99,11 @@ cp "$prefix"/lib/libqpdf* "$setup_dir"/lib
 echo "create installer"
 version=$(cat "$build_dir/VERSION" | sed '1!d')
 "/c/Program Files (x86)/NSIS/Bin/makensis.exe" -NOCD       \
-    -DXOURNALPP_VERSION="$version"                         \
+    -DFREENOTE_VERSION="$version"                         \
     -DSETUP_DIR="$setup_dir"                               \
     -DOUTPUT_INSTALLER_FILE="$build_dir/$installer_name"   \
     -DSCRIPT_DIR="$script_dir"                             \
-    "$script_dir/xournalpp.nsi"
+    "$script_dir/freenote.nsi"
 
 echo "finished"
 

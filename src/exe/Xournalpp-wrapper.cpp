@@ -187,8 +187,8 @@ auto main(int argc, char* argv[]) -> int {
         xoj::util::OwnedCString stderrBuffer;
 #endif
 
-        std::cout << "Xournal++ started with PID: " << g_subprocess_get_identifier(p.get()) << std::endl;
-        errorlog << "Xournal++ started with PID: " << g_subprocess_get_identifier(p.get()) << std::endl;
+        std::cout << "freenote started with PID: " << g_subprocess_get_identifier(p.get()) << std::endl;
+        errorlog << "freenote started with PID: " << g_subprocess_get_identifier(p.get()) << std::endl;
 
         g_subprocess_communicate_utf8(p.get(), nullptr, nullptr, stdoutBuffer.contentReplacer(),
 #ifdef _WIN32  // On Windows, STDERR_MERGE does not work. See https://gitlab.gnome.org/GNOME/glib/-/issues/3723
@@ -233,7 +233,7 @@ auto main(int argc, char* argv[]) -> int {
 #endif
     }
 
-    GtkApplication* app = gtk_application_new("com.github.xournalpp.xournalpp", G_APPLICATION_FLAGS_NONE);
+    GtkApplication* app = gtk_application_new("io.github.readme666.freenote", G_APPLICATION_FLAGS_NONE);
     g_signal_connect_data(app, "activate", xoj::util::wrap_for_g_callback_v<activate>, new std::string(errorlog.str()),
                           xoj::util::closure_notify_cb<std::string>, GConnectFlags(0));
 

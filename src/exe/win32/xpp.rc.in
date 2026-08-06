@@ -1,6 +1,6 @@
 #include "winver.h"
 
-0 ICON "xournalpp.ico"
+0 ICON "freenote.ico"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION ${PROJECT_VERSION_MAJOR}, ${PROJECT_VERSION_MINOR}, ${PROJECT_VERSION_PATCH}, 0
@@ -13,11 +13,11 @@ BEGIN
 		/* Lang = US English, Charset = Multilingual */
 		BLOCK "040904E4"
 		BEGIN
-			VALUE "CompanyName", "The Xournal++ Team\0"
-			VALUE "FileDescription", "Xournal++\0"
+			VALUE "CompanyName", "freenote contributors\0"
+			VALUE "FileDescription", "freenote\0"
 			VALUE "FileVersion", "${PROJECT_VERSION}\0"
 			VALUE "ProductVersion", "${PROJECT_VERSION}\0"
-			VALUE "ProductName", "Xournal++\0"
+			VALUE "ProductName", "freenote\0"
 			VALUE "LegalCopyright", "\0"
 			VALUE "LegalTrademarks", "\0"
 			VALUE "Comments", "\0"

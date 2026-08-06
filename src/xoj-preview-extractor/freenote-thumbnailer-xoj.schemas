@@ -4,7 +4,7 @@
 		<schema>
 			<key>/schemas/desktop/gnome/thumbnailers/application@x-xoj/enable</key>
 			<applyto>/desktop/gnome/thumbnailers/application@x-xoj/enable</applyto>
-			<owner>xournalpp</owner>
+			<owner>freenote</owner>
 			<type>bool</type>
 			<default>true</default>
 			<locale name="C">
@@ -16,9 +16,9 @@
 		<schema>
 			<key>/schemas/desktop/gnome/thumbnailers/application@x-xoj/command</key>
 			<applyto>/desktop/gnome/thumbnailers/application@x-xoj/command</applyto>
-			<owner>xournalpp</owner>
+			<owner>freenote</owner>
 			<type>string</type>
-			<default>xournalpp-thumbnailer %i %o</default>
+			<default>freenote-thumbnailer %i %o</default>
 			<locale name="C">
 				<short></short>
 				<long></long>

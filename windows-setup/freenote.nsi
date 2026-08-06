@@ -55,7 +55,7 @@ Function un.onInit
 FunctionEnd
 
 ; Name and file
-Name "freenote ${XOURNALPP_VERSION}"
+Name "freenote ${FREENOTE_VERSION}"
 OutFile "${OUTPUT_INSTALLER_FILE}"
 
 ;--------------------------------
@@ -148,7 +148,7 @@ SectionEnd
 
 !macro RegisterExt EXT PROGID
 	WriteRegStr SHCTX "Software\Classes\${EXT}\OpenWithProgIds" "${PROGID}" ""
-	WriteRegStr SHCTX "Software\Classes\Applications\xournalpp.exe\SupportedTypes" "${EXT}" ""
+	WriteRegStr SHCTX "Software\Classes\Applications\freenote.exe\SupportedTypes" "${EXT}" ""
 !macroend
 
 !macro AddProgId PROGID CMD DESC
@@ -262,10 +262,10 @@ Section "freenote" Secfreenote
 	WriteRegStr SHCTX "Software\freenote" "" '"$INSTDIR"'
 
 	; Set program information
-	WriteRegStr SHCTX "Software\Classes\Applications\xournalpp.exe" "" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
-	WriteRegStr SHCTX "Software\Classes\Applications\xournalpp.exe" "FriendlyAppName" "freenote"
-	WriteRegExpandStr SHCTX "Software\Classes\Applications\xournalpp.exe" "DefaultIcon" '"$INSTDIR\bin\xournalpp-wrapper.exe",0'
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\App Paths\xournalpp.exe" "" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
+	WriteRegStr SHCTX "Software\Classes\Applications\freenote.exe" "" '"$INSTDIR\bin\freenote-wrapper.exe"'
+	WriteRegStr SHCTX "Software\Classes\Applications\freenote.exe" "FriendlyAppName" "freenote"
+	WriteRegExpandStr SHCTX "Software\Classes\Applications\freenote.exe" "DefaultIcon" '"$INSTDIR\bin\freenote-wrapper.exe",0'
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\App Paths\freenote.exe" "" '"$INSTDIR\bin\freenote-wrapper.exe"'
 
 	; Add file type information
 	!insertmacro RegisterExt ".xopp" "freenote.File"
@@ -273,7 +273,7 @@ Section "freenote" Secfreenote
 	!insertmacro RegisterExt ".xoj" "freenote.Xournal"
 	!insertmacro RegisterExt ".pdf" "freenote.AnnotatePdf"
 	push $R0
-	StrCpy $R0 "$INSTDIR\bin\xournalpp-wrapper.exe"
+	StrCpy $R0 "$INSTDIR\bin\freenote-wrapper.exe"
 	!insertmacro AddProgId "freenote.File" "$R0" "freenote file"
 	!insertmacro AddProgId "freenote.Template" "$R0" "freenote template file"
 	!insertmacro AddProgId "freenote.Xournal" "$R0" "Xournal file"
@@ -283,11 +283,11 @@ Section "freenote" Secfreenote
 	; Create uninstaller
 	WriteUninstaller "$INSTDIR\Uninstall.exe"
 	; Add uninstall entry. See https://docs.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "DisplayIcon" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "DisplayIcon" '"$INSTDIR\bin\freenote-wrapper.exe"'
 	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "DisplayName" "freenote"
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "DisplayVersion" "${XOURNALPP_VERSION}"
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "DisplayVersion" "${FREENOTE_VERSION}"
 	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "Publisher" "The freenote Team"
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "URLInfoAbout" "https://xournalpp.github.io"
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "URLInfoAbout" "https://github.com/readme666/freenote"
 	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "InstallLocation" '"$INSTDIR"'
 	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "UninstallString" '"$INSTDIR\Uninstall.exe"'
 	WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "NoModify" 1
@@ -296,7 +296,7 @@ Section "freenote" Secfreenote
 	!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 		;Create shortcuts
 		CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-		CreateShortcut "$SMPROGRAMS\$StartMenuFolder\freenote.lnk" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
+		CreateShortcut "$SMPROGRAMS\$StartMenuFolder\freenote.lnk" '"$INSTDIR\bin\freenote-wrapper.exe"'
 		CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" '"$INSTDIR\Uninstall.exe"'
 		
 		!insertmacro RefreshShellIconCreate "$SMPROGRAMS\$StartMenuFolder\freenote.lnk"
@@ -339,8 +339,8 @@ Section "Uninstall"
 
 	; Remove registry keys
 	DeleteRegKey SHCTX "Software\freenote"
-	DeleteRegKey SHCTX "Software\Classes\Applications\xournalpp.exe"
-	DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\App Paths\xournalpp.exe"
+	DeleteRegKey SHCTX "Software\Classes\Applications\freenote.exe"
+	DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\App Paths\freenote.exe"
 	DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote"
 
 	!insertmacro DeleteProgId "freenote.File"
