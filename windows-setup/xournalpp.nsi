@@ -15,8 +15,8 @@ Unicode true
 !include nsDialogs.nsh
 
 ; Options for MultiUser plugin
-!define MULTIUSER_INSTALLMODE_INSTDIR "Xournal++"
-!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "Software\Xournal++"
+!define MULTIUSER_INSTALLMODE_INSTDIR "freenote"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "Software\freenote"
 
 !define MULTIUSER_EXECUTIONLEVEL Highest ; Mixed-mode installer that can both be per-machine or per-user
 !define MULTIUSER_MUI
@@ -34,7 +34,7 @@ Function .onInit
 		SetRegView 64
 	${Else}
 		# 32 bit code
-		MessageBox MB_OK "Xournal++ requires 64-bit Windows. Sorry!"
+		MessageBox MB_OK "freenote requires 64-bit Windows. Sorry!"
 		Abort
 	${EndIf}
 
@@ -47,7 +47,7 @@ Function un.onInit
 		SetRegView 64
 	${Else}
 		# 32 bit code
-		MessageBox MB_OK "Xournal++ requires 64-bit Windows. Sorry!"
+		MessageBox MB_OK "freenote requires 64-bit Windows. Sorry!"
 		Abort
 	${EndIf}
 
@@ -55,7 +55,7 @@ Function un.onInit
 FunctionEnd
 
 ; Name and file
-Name "Xournal++ ${XOURNALPP_VERSION}"
+Name "freenote ${XOURNALPP_VERSION}"
 OutFile "${OUTPUT_INSTALLER_FILE}"
 
 ;--------------------------------
@@ -79,9 +79,9 @@ Var StartMenuFolder
 
 ;Start Menu Folder Page Configuration
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "SHCTX"
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Xournal++"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\freenote"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "StartMenuEntry"
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER "Xournal++"
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "freenote"
 
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
 
@@ -100,10 +100,10 @@ Var StartMenuFolder
 
 Var IsLegacyInstall
 Section "" SecUninstallPrevious
-	ReadRegStr $R0 SHCTX "Software\Xournal++" ""
+	ReadRegStr $R0 SHCTX "Software\freenote" ""
 	${If} $R0 == ""
 		; check for legacy installation
-		ReadRegStr $R0 HKCU "Software\Xournalpp" ""
+		ReadRegStr $R0 HKCU "Software\freenote" ""
 		${If} $R0 != ""
 			StrCpy $IsLegacyInstall 1
 		${EndIf}
@@ -125,15 +125,15 @@ Section "" SecUninstallPrevious
 			DetailPrint "Removing old start menu entries"
 
 			!insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
-			Delete "$SMPROGRAMS\$StartMenuFolder\Xournal++.lnk"
+			Delete "$SMPROGRAMS\$StartMenuFolder\freenote.lnk"
 			Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
 			RMDir "$SMPROGRAMS\$StartMenuFolder"
 			
 			DetailPrint "Removing old registry keys"
-			DeleteRegKey HKLM "Software\Classes\Xournal++ file"
-			DeleteRegKey HKLM "Software\Classes\Xournal++ Template Files"
+			DeleteRegKey HKLM "Software\Classes\freenote file"
+			DeleteRegKey HKLM "Software\Classes\freenote Template Files"
 			DeleteRegKey HKLM "Software\Classes\Xournal file"
-			DeleteRegKey HKCU "Software\Xournalpp"
+			DeleteRegKey HKCU "Software\freenote"
 		${EndIf}
     ${EndIf}
 SectionEnd
@@ -157,7 +157,7 @@ SectionEnd
 	WriteRegStr SHCTX "Software\Classes\${PROGID}\DefaultIcon" "" '"${CMD}",0'
 	WriteRegStr SHCTX "Software\Classes\${PROGID}\shell" "" "open"
 	WriteRegStr SHCTX "Software\Classes\${PROGID}\shell\open\command" "" '"${CMD}" "%1"'
-	WriteRegStr SHCTX "Software\Classes\${PROGID}\shell\edit" "" "Edit with Xournal++"
+	WriteRegStr SHCTX "Software\Classes\${PROGID}\shell\edit" "" "Edit with freenote"
 	WriteRegStr SHCTX "Software\Classes\${PROGID}\shell\edit\command" "" '"${CMD}" "%1"'
 !macroend
 
@@ -187,16 +187,16 @@ SectionEnd
 ;-------------------------------
 ; Installer Sections
 
-Section "Associate .xopp files with Xournal++" SecFileXopp
-	!insertmacro SetDefaultExt ".xopp" "Xournal++.File"
+Section "Associate .xopp files with freenote" SecFileXopp
+	!insertmacro SetDefaultExt ".xopp" "freenote.File"
 SectionEnd
 
-Section "Associate .xopt files with Xournal++" SecFileXopt
-	!insertmacro SetDefaultExt ".xopt" "Xournal++.Template"
+Section "Associate .xopt files with freenote" SecFileXopt
+	!insertmacro SetDefaultExt ".xopt" "freenote.Template"
 SectionEnd
 
-Section "Associate .xoj files with Xournal++" SecFileXoj
-	!insertmacro SetDefaultExt ".xoj" "Xournal++.Xournal"
+Section "Associate .xoj files with freenote" SecFileXoj
+	!insertmacro SetDefaultExt ".xoj" "freenote.Xournal"
 SectionEnd
 
 Function OnDirectoryLeave
@@ -244,12 +244,12 @@ Function .onVerifyInstDir
     ; Get last component of path
     ${GetFileName} $INSTDIR $0
     
-    ${If} $0 != "Xournal++"
-        StrCpy $INSTDIR "$INSTDIR\Xournal++"
+    ${If} $0 != "freenote"
+        StrCpy $INSTDIR "$INSTDIR\freenote"
     ${EndIf}
 FunctionEnd
 
-Section "Xournal++" SecXournalpp
+Section "freenote" Secfreenote
 	; Required
 	SectionIn RO
 
@@ -259,47 +259,47 @@ Section "Xournal++" SecXournalpp
 	File /r ${SETUP_DIR}\*
 
 	; Set install information
-	WriteRegStr SHCTX "Software\Xournal++" "" '"$INSTDIR"'
+	WriteRegStr SHCTX "Software\freenote" "" '"$INSTDIR"'
 
 	; Set program information
 	WriteRegStr SHCTX "Software\Classes\Applications\xournalpp.exe" "" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
-	WriteRegStr SHCTX "Software\Classes\Applications\xournalpp.exe" "FriendlyAppName" "Xournal++"
+	WriteRegStr SHCTX "Software\Classes\Applications\xournalpp.exe" "FriendlyAppName" "freenote"
 	WriteRegExpandStr SHCTX "Software\Classes\Applications\xournalpp.exe" "DefaultIcon" '"$INSTDIR\bin\xournalpp-wrapper.exe",0'
 	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\App Paths\xournalpp.exe" "" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
 
 	; Add file type information
-	!insertmacro RegisterExt ".xopp" "Xournal++.File"
-	!insertmacro RegisterExt ".xopt" "Xournal++.Template"
-	!insertmacro RegisterExt ".xoj" "Xournal++.Xournal"
-	!insertmacro RegisterExt ".pdf" "Xournal++.AnnotatePdf"
+	!insertmacro RegisterExt ".xopp" "freenote.File"
+	!insertmacro RegisterExt ".xopt" "freenote.Template"
+	!insertmacro RegisterExt ".xoj" "freenote.Xournal"
+	!insertmacro RegisterExt ".pdf" "freenote.AnnotatePdf"
 	push $R0
 	StrCpy $R0 "$INSTDIR\bin\xournalpp-wrapper.exe"
-	!insertmacro AddProgId "Xournal++.File" "$R0" "Xournal++ file"
-	!insertmacro AddProgId "Xournal++.Template" "$R0" "Xournal++ template file"
-	!insertmacro AddProgId "Xournal++.Xournal" "$R0" "Xournal file"
-	!insertmacro AddProgId "Xournal++.AnnotatePdf" "$R0" "PDF file"
+	!insertmacro AddProgId "freenote.File" "$R0" "freenote file"
+	!insertmacro AddProgId "freenote.Template" "$R0" "freenote template file"
+	!insertmacro AddProgId "freenote.Xournal" "$R0" "Xournal file"
+	!insertmacro AddProgId "freenote.AnnotatePdf" "$R0" "PDF file"
 	pop $R0
 
 	; Create uninstaller
 	WriteUninstaller "$INSTDIR\Uninstall.exe"
 	; Add uninstall entry. See https://docs.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++" "DisplayIcon" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++" "DisplayName" "Xournal++"
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++" "DisplayVersion" "${XOURNALPP_VERSION}"
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++" "Publisher" "The Xournal++ Team"
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++" "URLInfoAbout" "https://xournalpp.github.io"
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++" "InstallLocation" '"$INSTDIR"'
-	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++" "UninstallString" '"$INSTDIR\Uninstall.exe"'
-	WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++" "NoModify" 1
-	WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++" "NoRepair" 1
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "DisplayIcon" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "DisplayName" "freenote"
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "DisplayVersion" "${XOURNALPP_VERSION}"
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "Publisher" "The freenote Team"
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "URLInfoAbout" "https://xournalpp.github.io"
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "InstallLocation" '"$INSTDIR"'
+	WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+	WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "NoModify" 1
+	WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote" "NoRepair" 1
 
 	!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 		;Create shortcuts
 		CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
-		CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Xournal++.lnk" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
+		CreateShortcut "$SMPROGRAMS\$StartMenuFolder\freenote.lnk" '"$INSTDIR\bin\xournalpp-wrapper.exe"'
 		CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" '"$INSTDIR\Uninstall.exe"'
 		
-		!insertmacro RefreshShellIconCreate "$SMPROGRAMS\$StartMenuFolder\Xournal++.lnk"
+		!insertmacro RefreshShellIconCreate "$SMPROGRAMS\$StartMenuFolder\freenote.lnk"
 	!insertmacro MUI_STARTMENU_WRITE_END
 
 	!insertmacro RefreshShellIcons
@@ -309,14 +309,14 @@ SectionEnd
 ; Descriptions
 
 ; Language strings
-LangString DESC_SecXournalpp ${LANG_ENGLISH} "Xournal++ executable"
-LangString DESC_SecFileXopp ${LANG_ENGLISH} "Open .xopp files with Xournal++"
-LangString DESC_SecFileXopt ${LANG_ENGLISH} "Open .xopt files with Xournal++"
-LangString DESC_SecFileXoj ${LANG_ENGLISH} "Open .xoj files with Xournal++"
+LangString DESC_Secfreenote ${LANG_ENGLISH} "freenote executable"
+LangString DESC_SecFileXopp ${LANG_ENGLISH} "Open .xopp files with freenote"
+LangString DESC_SecFileXopt ${LANG_ENGLISH} "Open .xopt files with freenote"
+LangString DESC_SecFileXoj ${LANG_ENGLISH} "Open .xoj files with freenote"
 
 ; Assign language strings to sections
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecXournalpp} $(DESC_SecXournalpp)
+	!insertmacro MUI_DESCRIPTION_TEXT ${Secfreenote} $(DESC_Secfreenote)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecFileXopp} $(DESC_SecFileXopp)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecFileXopt} $(DESC_SecFileXopt)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecFileXoj} $(DESC_SecFileXoj)
@@ -330,7 +330,7 @@ Section "Uninstall"
 	SetRegView 64
 
 	; FIXME: ask if the user wants to uninstall the user or system wide install
-	ReadRegStr $0 HKCU "Software\Xournal++" ""
+	ReadRegStr $0 HKCU "Software\freenote" ""
 	${IF} $0 == ""
 		SetShellVarContext all
 	${ELSE}
@@ -338,19 +338,19 @@ Section "Uninstall"
 	${ENDIF}
 
 	; Remove registry keys
-	DeleteRegKey SHCTX "Software\Xournal++"
+	DeleteRegKey SHCTX "Software\freenote"
 	DeleteRegKey SHCTX "Software\Classes\Applications\xournalpp.exe"
 	DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\App Paths\xournalpp.exe"
-	DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Xournal++"
+	DeleteRegKey SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\freenote"
 
-	!insertmacro DeleteProgId "Xournal++.File"
-	!insertmacro DeleteProgId "Xournal++.Template"
-	!insertmacro DeleteProgId "Xournal++.Xournal"
-	!insertmacro DeleteProgId "Xournal++.AnnotatePdf"
+	!insertmacro DeleteProgId "freenote.File"
+	!insertmacro DeleteProgId "freenote.Template"
+	!insertmacro DeleteProgId "freenote.Xournal"
+	!insertmacro DeleteProgId "freenote.AnnotatePdf"
 
 	; Clean up start menu
 	!insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
-	Delete "$SMPROGRAMS\$StartMenuFolder\Xournal++.lnk"
+	Delete "$SMPROGRAMS\$StartMenuFolder\freenote.lnk"
 	Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
 	RMDir "$SMPROGRAMS\$StartMenuFolder"
 
@@ -362,6 +362,6 @@ Section "Uninstall"
 	Delete "$INSTDIR\Uninstall.exe"
 	RMDir "$INSTDIR"
 
-	!insertmacro RefreshShellIconDelete "$SMPROGRAMS\$StartMenuFolder\Xournal++.lnk"
+	!insertmacro RefreshShellIconDelete "$SMPROGRAMS\$StartMenuFolder\freenote.lnk"
 	!insertmacro RefreshShellIcons
 SectionEnd

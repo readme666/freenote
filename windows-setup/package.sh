@@ -10,8 +10,8 @@ if [ -z $1 ]; then
 else
     build_dir="$(cd $1; pwd)"
 fi
-setup_dir_name="dist"  # Same as in xournalpp.nsis
-installer_name="xournalpp-setup.exe"  # Same as in xournalpp.nsis
+setup_dir_name="dist"  # Same as in the NSIS script
+installer_name="freenote-setup.exe"  # Same as in the NSIS script
 setup_dir="$build_dir/$setup_dir_name"
 script_dir=$(dirname $(readlink -f "$0"))
 echo "Installing to $setup_dir and making installer $build_dir/$installer_name"
