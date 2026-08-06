@@ -14,12 +14,26 @@
 #include <gtest/gtest.h>
 
 #include "control/settings/Settings.h"
+#include "model/PageType.h"
 
 TEST(SettingsTest, testLoadDoesNotThrowForNonExistingFilePath) {
     const fs::path path = fs::temp_directory_path() / "xournalpp-test-units_Settings_nonExisting.xml";
     fs::remove(path);
     Settings settings{path};
     EXPECT_NO_THROW(settings.load());
+    fs::remove(path);
+}
+
+// The default page template must be blank: on an infinite canvas a lined or
+// ruled background extends endlessly and reads as a rendering artifact.
+TEST(SettingsTest, DefaultPageTemplateIsBlank) {
+    PageTemplateSettings bare;
+    EXPECT_EQ(PageTypeFormat::Plain, bare.getBackgroundType().format);
+
+    const fs::path path = fs::temp_directory_path() / "xournalpp-test-units_Settings_defaultBlank.xml";
+    fs::remove(path);
+    Settings settings{path};
+    EXPECT_EQ(PageTypeFormat::Plain, settings.getPageTemplateSettings().getBackgroundType().format);
     fs::remove(path);
 }
 
