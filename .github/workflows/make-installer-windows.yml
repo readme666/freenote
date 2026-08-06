@@ -28,6 +28,34 @@ on:
       extra_cmake_flags:
         type: string
         default: ''
+  workflow_dispatch:
+    inputs:
+      runner:
+        type: string
+        required: true
+        default: 'windows-2022'
+      displayed_name:
+        type: string
+        required: true
+        default: 'Windows x86_64'
+      msystem:
+        type: string
+        required: true
+        default: 'mingw64'
+      msys_package_env:
+        type: string
+        required: true
+        default: 'x86_64'
+      publish_portable_version:
+        type: boolean
+        required: false
+        default: true
+      build_type:
+        type: string
+        default: 'RelWithDebInfo'
+      extra_cmake_flags:
+        type: string
+        default: ''
       artifact_version_suffix:  # Additional version string appended to 1.2.3+dev (for instance) in artifacts names
         type: string
         default: ''
