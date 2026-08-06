@@ -38,7 +38,7 @@
                 <property name="name">XournalIcon</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="pixbuf">pixmaps/com.github.xournalpp.xournalpp.svg</property>
+                <property name="pixbuf">pixmaps/freenote.svg</property>
               </object>
               <packing>
                 <property name="left-attach">0</property>
@@ -90,8 +90,8 @@
                 <property name="name">labelTitle</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">&lt;span size="xx-large" weight="bold"&gt;Xournal++&lt;gt;freenote&gt;Xournal++&lt;lt;/span&gt;
-&lt;i&gt;The next generation&lt;/i&gt;</property>
+                <property name="label" translatable="yes">&lt;span size="xx-large" weight="bold"&gt;freenote&lt;/span&gt;
+ &lt;i&gt;Handwriting notes with real-time ink prediction&lt;/i&gt;</property>
                 <property name="use-markup">True</property>
                 <property name="justify">center</property>
               </object>
@@ -183,8 +183,14 @@ Luya Tshimbalanga</property>
                     <property name="name">lbXournal</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Partially based on Xournal
-by Denis Auroux</property>
+                    <property name="label" translatable="yes">freenote is a fork of Xournal++ (GPL-2.0-or-later)
+with real-time handwriting prediction powered by
+Google Ink Stroke Modeler (Apache-2.0).
+
+Partially based on Xournal by Denis Auroux.
+
+Thanks to the Xournal++ team and all contributors,
+and to Google for the Ink Stroke Modeler.</property>
                     <property name="use-markup">True</property>
                     <property name="justify">center</property>
                   </object>
