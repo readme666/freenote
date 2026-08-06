@@ -1,20 +1,34 @@
 # freenote
 
 Xournal++ with **Google Ink Stroke Modeler** handwriting prediction and
-adaptive input stabilization.
+adaptive input stabilization — a OneNote-class handwriting experience for
+stylus devices on Linux.
 
-This repository is a fork of [Xournal++](https://github.com/xournalpp/xournalpp)
-(upstream master `c24f69614`) that adds low-latency pen-input smoothing and a
-non-persistent "wet ink" stroke preview. The upstream application is otherwise
-unmodified.
+## Background & motivation
 
-## What this adds
+For stylus devices, Linux has long lacked a note-taking and drawing
+application whose handwriting quality comes close to Microsoft OneNote.
+[Xournal++](https://github.com/xournalpp/xournalpp) is the most capable
+open-source candidate, but its built-in stroke prediction is difficult to
+use and its writing quality falls visibly short of OneNote. freenote
+integrates Google's [ink-stroke-modeler](https://github.com/google/ink-stroke-modeler)
+— the same technology behind handwriting input on ChromeOS and Android —
+and the resulting writing experience reaches a level comparable to
+OneNote.
+
+This repository is a fork of Xournal++ (upstream master `c24f69614`) that
+adds low-latency pen-input smoothing and a non-persistent "wet ink" stroke
+preview. The upstream application is otherwise unmodified.
+
+## Features
 
 | Feature | Description |
 |---|---|
-| **Stroke prediction with wet-ink preview** | The [Google Ink Stroke Modeler](https://github.com/google/ink-stroke-modeler) (spring/drag model + Kalman predictor) estimates where the pen tip is heading. A translucent preview tail renders the prediction while you draw. Prediction is **transient**: it is never written to the document, so `.xopp` files stay byte-compatible with upstream. |
+| **OneNote-grade handwriting** | The [Google Ink Stroke Modeler](https://github.com/google/ink-stroke-modeler) (spring/drag model + Kalman predictor) estimates where the pen tip is heading. A translucent preview tail renders the prediction while you draw. Prediction is **transient**: it is never written to the document, so `.xopp` files stay byte-compatible with upstream. |
 | **1€ adaptive stabilization** | Replaces the previous averaging stabilizers with a [1 Euro filter](https://dl.acm.org/doi/10.1145/2207676.2208639): strong smoothing for slow/jittery input, minimal latency for fast strokes. Pressure is filtered independently. A direction-invariant 2D variant removes diagonal-stroke lag. |
 | **Robust input handling** | Out-of-order timestamps, GDK millisecond wraparound, devices reporting faster than 1 kHz, mid-stroke pauses and zoom changes are all handled as sub-stroke boundaries instead of silently disabling the model. Stylus tip-up detection consults the raw device pressure and ignores touch input. |
+| **Infinite canvas** | Pages can be set to an endlessly growing canvas that expands right/down as you draw or scroll, with viewport-bounded rendering. |
+| **Multi-image insertion** | Insert several images at once with grouped placement and undo. |
 
 The prediction pipeline is wired into `StrokeHandler` and rendered by a
 dedicated `PredictiveStrokeToolView` overlay. It is gated to the plain pen tool
