@@ -1,0 +1,4 @@
+[Thumbnailer Entry]
+Exec=freenote-thumbnailer %i %o
+MimeType=application/x-xoj;application/x-xojpp;application/x-xopp;
+

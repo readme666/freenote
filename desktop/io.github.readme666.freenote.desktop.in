@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+
+Name=freenote
+GenericName=Note-taking application
+Comment=Take handwritten notes
+Keywords=tablet;Wacom;pen input;PDF Annotation;markup;journal;handwriting;diary;notes;
+
+Exec=freenote-wrapper %f
+SingleMainWindow=false
+StartupWMClass=io.github.readme666.freenote
+Terminal=false
+StartupNotify=true
+MimeType=application/x-xoj;application/x-xojpp;application/x-xopp;application/x-xopt;application/pdf
+Icon=freenote
+Categories=Office;GNOME;GTK

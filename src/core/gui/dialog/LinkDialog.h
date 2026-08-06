@@ -1,0 +1,89 @@
+/*
+ * Xournal++
+ *
+ * Link Dialog
+ *
+ * @author Xournal++ Team
+ * https://github.com/xournalpp/xournalpp
+ *
+ * @license GNU GPLv2 or later
+ */
+
+#pragma once
+
+#include <functional>  // for std::function
+#include <string>      // for String
+
+#include <gdk/gdk.h>  // for GdkEventKey
+#include <gtk/gtk.h>  // for GtkIMContext, GtkTextIter, GtkWidget
+
+#include "model/Font.h"  // for XojFont
+#include "model/TextAlignment.h"
+#include "util/raii/GtkWindowUPtr.h"
+
+class Control;
+
+// Named enum for the values that the "align" attribute can take in .xopp files
+
+enum class URLPrefix { NONE = 0, HTTP = 1, HTTPS = 2, MAILTO = 3, FILE = 4 };
+
+class LinkDialog {
+public:
+    LinkDialog(Control* control, std::function<void(LinkDialog*)> callbackOK, std::function<void()> callbackCancel);
+    ~LinkDialog();
+
+public:
+    void preset(XojFont font, std::string text, std::string url, TextAlignment layout = TextAlignment::LEFT);
+    std::string getText();
+    std::string getURL();
+    TextAlignment getLayout();
+    XojFont getFont();
+
+public:
+    void okButtonPressed();
+    void cancelButtonPressed();
+    void layoutToggled(TextAlignment l);
+    void urlPrefixChanged(GtkComboBoxText* source);
+
+private:
+    bool isTextValid(const std::string& text);
+    bool isUrlValid(const std::string& url);
+    URLPrefix identifyAndShortenURL(std::string& url);
+
+private:
+    xoj::util::GtkWindowUPtr linkDialog;
+    std::function<void(LinkDialog*)> callbackOK;
+    std::function<void()> callbackCancel;
+
+    GtkTextView* textInput = nullptr;
+    GtkEntry* urlInput = nullptr;
+
+    GtkFontChooser* fontChooser = nullptr;
+
+    GtkToggleButton* layoutLeft = nullptr;
+    GtkToggleButton* layoutCenter = nullptr;
+    GtkToggleButton* layoutRight = nullptr;
+
+    GtkComboBoxText* linkTypeChooser = nullptr;
+
+    std::string linkText;
+    std::string linkURL;
+    TextAlignment layout = TextAlignment::LEFT;
+
+public:
+    inline GtkWindow* getWindow() const { return linkDialog.get(); }
+
+public:
+    static constexpr int DEFAULT_HEIGHT = 180;
+    static constexpr float MAX_HEIGHT_RATIO = 0.75;
+    static constexpr int INITIAL_NUMBER_OF_LINES = 2;
+
+    static constexpr char PLACEHOLDER_HTTPS[] = "xournalpp.github.io";
+    static constexpr char PLACEHOLDER_MAIL[] = "email-address@provider.domain";
+#if defined(_WIN32)
+    static constexpr char PLACEHOLDER_FILE[] = "/C:/foo/bar";
+#else
+    static constexpr char PLACEHOLDER_FILE[] = "/absolute/path/to/file";
+#endif
+    static constexpr char PLACEHOLDER_OTHER[] = "https://www.xournalpp.github.io";
+};
