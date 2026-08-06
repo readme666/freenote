@@ -1,5 +1,7 @@
 #include "AboutDialog.h"
 
+#include <algorithm>  // for max
+
 #include <gtk/gtk.h>
 
 #include "gui/Builder.h"
@@ -22,6 +24,25 @@ constexpr auto LICENCE_LINK = "https://raw.githubusercontent.com/xournalpp/xourn
 static GtkWindow* constructWindow(GladeSearchpath* gladeSearchPath) {
     Builder builder(gladeSearchPath, UI_FILE);
     GtkWindow* window = GTK_WINDOW(builder.get(UI_DIALOG_NAME));
+
+    // The logo is a full-resolution 1024 px image, and GtkImage renders a
+    // pixbuf at its intrinsic size. The dialog's grid is column-homogeneous,
+    // so without scaling the icon alone would inflate the window to screen
+    // size. Shrink it to a conventional about-icon size, keeping the aspect
+    // ratio.
+    if (auto* icon = GTK_IMAGE(builder.get("XournalIcon")); GdkPixbuf* pixbuf = gtk_image_get_pixbuf(icon)) {
+        constexpr int MAX_ICON_SIZE = 128;
+        const int width = gdk_pixbuf_get_width(pixbuf);
+        const int height = gdk_pixbuf_get_height(pixbuf);
+        if (const int largest = std::max(width, height); largest > MAX_ICON_SIZE) {
+            const double ratio = static_cast<double>(MAX_ICON_SIZE) / largest;
+            GdkPixbuf* scaled = gdk_pixbuf_scale_simple(
+                    pixbuf, std::max(1, static_cast<int>(width * ratio)),
+                    std::max(1, static_cast<int>(height * ratio)), GDK_INTERP_BILINEAR);
+            gtk_image_set_from_pixbuf(icon, scaled);
+            g_object_unref(scaled);
+        }
+    }
 
     auto insertPropertyKey = [](GtkGrid* grid, std::string&& str, gint top) {
         auto widget = gtk_label_new(nullptr);
