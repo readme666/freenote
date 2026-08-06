@@ -63,3 +63,7 @@ Debug
 # Miscellaneous
 .DS_STORE
 *~
+
+# The GitHub Actions composite build action must stay tracked despite the
+# build*/ pattern above (which would otherwise match this directory).
+!.github/actions/build/
