@@ -13,7 +13,7 @@ mkdir -p "$TMP_MOUNTPOINT"
 
 # Create the image.
 # If there is not enough space when copying, the size should be increased.
-hdiutil create -size 256m -fs HFS+ -volname "Xournal++" "$TMP_DMG"
+hdiutil create -size 256m -fs HFS+ -volname "freenote" "$TMP_DMG"
 hdiutil attach "$TMP_DMG" -mountpoint "$TMP_MOUNTPOINT"
 echo "Copying app"
 cp -r "$APP_NAME" "$TMP_MOUNTPOINT"/

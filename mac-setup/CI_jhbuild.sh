@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# The GNU mirror (ftpmirror.gnu.org) is flaky from CI runners; retry the 
+# wget downloads used by the jhbuild bootstrap instead of aborting. 
+mkdir -p "$HOME/.local/bin" && printf '#!/usr/bin/env bash
+exec /usr/bin/wget --tries=10 --retry-connrefused --waitretry=3 "$@"
+' > "$HOME/.local/bin/wget" && chmod +x "$HOME/.local/bin/wget" && export PATH="$HOME/.local/bin:$PATH"
 
 set -e
 set -o pipefail

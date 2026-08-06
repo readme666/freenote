@@ -19,10 +19,10 @@
 
   <plist>${project}/Info.plist</plist>
 
-  <main-binary>${prefix}/bin/xournalpp-wrapper</main-binary>
+  <main-binary>${prefix}/bin/freenote-wrapper</main-binary>
 
   <binary dest="${bundle}/Contents/MacOS">
-    ${prefix}/bin/xournalpp
+    ${prefix}/bin/freenote
   </binary>
 
   <binary dest="${bundle}/Contents/MacOS">
@@ -84,7 +84,7 @@
     ${prefix}/share/locale
   </translations>
 
-  <translations  name="xournalpp">
+  <translations  name="freenote">
     ${prefix}/share/locale
   </translations>
 
@@ -119,7 +119,7 @@
   </data>
 
   <data dest="${bundle}/Contents/Resources/palettes">
-    ${prefix}/share/xournalpp/palettes
+    ${prefix}/share/freenote/palettes
   </data>
 
   <data>
@@ -127,11 +127,11 @@
   </data>
 
   <data dest="${bundle}/Contents/Resources/plugins">
-    ${prefix}/share/xournalpp/plugins
+    ${prefix}/share/freenote/plugins
   </data>
 
   <data dest="${bundle}/Contents/Resources">
-    ${prefix}/share/xournalpp/resources
+    ${prefix}/share/freenote/resources
   </data>
 
   <data dest="${bundle}/Contents/Resources">
@@ -143,7 +143,7 @@
   </data>
 
   <data dest="${bundle}/Contents/Resources/ui">
-    ${prefix}/share/xournalpp/ui
+    ${prefix}/share/freenote/ui
   </data>
 
   </app-bundle>

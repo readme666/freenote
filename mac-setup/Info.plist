@@ -5,15 +5,15 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleSignature</key>
-    <string>Xournal++</string>
+    <string>freenote</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.business</string>
     <key>CFBundleIdentifier</key>
-    <string>com.github.xournalpp</string>
+    <string>io.github.readme666.freenote</string>
     <key>CFBundleName</key>
-    <string>Xournal++</string>
+    <string>freenote</string>
     <key>CFBundleDisplayName</key>
-    <string>Xournal++</string>
+    <string>freenote</string>
 
     <key>CFBundleShortVersionString</key>
     <string>1.3.6+dev</string>
