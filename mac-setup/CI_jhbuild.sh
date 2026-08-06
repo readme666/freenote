@@ -93,6 +93,10 @@ use_local_modulesets = True
 moduleset = "gtk-osx.modules"
 modulesets_dir = os.path.expanduser("~/gtk-osx-custom/modulesets-stable")
 
+# Parallelize the GTK stack build: a private repository is limited to a 2h
+# job, and building every dependency serially from source exceeds it.
+jobs = 4
+
 # Fix freetype build finding brotli installed through brew or ports, causing the
 # harfbuzz build to fail when jhbuild's pkg-config cannot find brotli.
 module_cmakeargs['freetype-no-harfbuzz'] = ' -DFT_DISABLE_BROTLI=TRUE '
