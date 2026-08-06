@@ -266,7 +266,7 @@ void Settings::loadDefault() {
     this->stabilizerSigma = 0.5;
     this->stabilizerMinCutoff = 1.0;
     this->stabilizerBeta = 0.02;
-    this->stabilizerPredictionTime = 15.0;
+    this->stabilizerPredictionTime = 12.0;
     this->stabilizerDeadzoneRadius = 1.3;
     this->stabilizerCuspDetection = true;
     this->stabilizerDrag = 0.4;

@@ -153,7 +153,7 @@
   <object class="GtkAdjustment" id="adjustmentStabilizerPredictionTime">
     <property name="lower">4</property>
     <property name="upper">20</property>
-    <property name="value">15</property>
+    <property name="value">12</property>
     <property name="step-increment">1</property>
     <property name="page-increment">4</property>
   </object>
